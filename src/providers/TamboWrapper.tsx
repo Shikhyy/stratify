@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { TamboProvider } from "@tambo-ai/react";
 import { STRATIFY_TOOLS } from "../tambo.config";
+import { ThemeProvider } from "../context/ThemeContext";
 
 export function TamboWrapper({ children }: { children: ReactNode }) {
     const apiKey = import.meta.env.VITE_TAMBO_API_KEY;
@@ -10,11 +11,13 @@ export function TamboWrapper({ children }: { children: ReactNode }) {
     }
 
     return (
-        <TamboProvider
-            apiKey={apiKey}
-            components={STRATIFY_TOOLS}
-        >
-            {children}
-        </TamboProvider>
+        <ThemeProvider>
+            <TamboProvider
+                apiKey={apiKey}
+                components={STRATIFY_TOOLS}
+            >
+                {children}
+            </TamboProvider>
+        </ThemeProvider>
     );
 }

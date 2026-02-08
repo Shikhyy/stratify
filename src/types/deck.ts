@@ -11,6 +11,17 @@ export type SlideType =
 
 export type Section = 'Context' | 'Analysis' | 'Strategy' | 'Impact';
 
+export type SlideIntent = 'strategy' | 'finance' | 'roadmap' | 'risk' | 'insight';
+
+export interface SlideSpec {
+    slideType: SlideIntent;
+    headline: string;
+    keyPoints: string[];
+    visualType: '2x2' | 'flow' | 'pyramid' | 'waterfall' | 'timeline' | 'bar';
+    visualData: Record<string, any>;
+    takeaway: string;
+}
+
 export interface ConsultingLayoutProps {
     actionTitle?: string;
     kicker?: string;

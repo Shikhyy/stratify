@@ -82,7 +82,7 @@ export function useExportDeck() {
 
 function drawConsultingLayout(pres: any, pptSlide: any, data: SlideData) {
     const { actionTitle, kicker, section, phase } = data.props;
-    const { secondary } = data.theme;
+    const { primary } = data.theme;
 
     const activeSection = phase || section || 'Analysis';
     const sections = ['Context', 'Analysis', 'Strategy', 'Impact'];
@@ -90,7 +90,7 @@ function drawConsultingLayout(pres: any, pptSlide: any, data: SlideData) {
     // A. Action Title (Top Left)
     pptSlide.addText(actionTitle || "Untitled Slide", {
         x: 0.5, y: 0.4, w: '80%', h: 0.8,
-        fontSize: 24, fontFace: "Arial", bold: true, color: "0F172A", // Slate-900
+        fontSize: 28, fontFace: "Calibri", bold: true, color: "1F2933",
         valign: "top"
     });
 
@@ -102,14 +102,14 @@ function drawConsultingLayout(pres: any, pptSlide: any, data: SlideData) {
         // Pill Shape
         pptSlide.addShape(pres.ShapeType.roundRect, {
             x: xPos, y: 0.4, w: 1.1, h: 0.3,
-            fill: { color: isActive ? secondary.replace('#', '') : "F1F5F9" },
-            rectRadius: 10,
+            fill: { color: isActive ? primary.replace('#', '') : "F1F5F9" },
+            rectRadius: 5,
             line: { color: "FFFFFF", width: 0 }
         });
         // Pill Text
         pptSlide.addText(step, {
             x: xPos, y: 0.4, w: 1.1, h: 0.3,
-            fontSize: 9, align: "center", color: isActive ? "FFFFFF" : "94A3B8"
+            fontSize: 9, align: "center", color: isActive ? "FFFFFF" : "94A3B8", fontFace: "Calibri"
         });
     });
 

@@ -1,9 +1,9 @@
 import React from 'react';
-import { motion } from 'framer-motion';
 import { Download, Copy, Trash2 } from 'lucide-react';
 import type { Slide } from '../context/DeckContext';
 import { useDeck } from '../context/DeckContext';
 import { useExportDeck } from '../hooks/useExportDeck';
+import { useTheme } from '../context/ThemeContext';
 
 interface SlideEditorProps {
     currentSlide: Slide | undefined;
@@ -16,6 +16,7 @@ export const SlideEditor: React.FC<SlideEditorProps> = ({
     slideIndex,
     totalSlides,
 }) => {
+    const { isDark } = useTheme();
     const { exportToPPT } = useExportDeck();
     const { duplicateSlide, deleteSlide } = useDeck();
 
@@ -38,20 +39,18 @@ export const SlideEditor: React.FC<SlideEditorProps> = ({
     };
 
     return (
-        <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
+        <div
             className="h-full flex flex-col"
         >
             {/* Header */}
-            <div className="border-b border-white/10 p-4 flex-shrink-0">
+            <div className={`border-b p-4 flex-shrink-0 ${isDark ? 'border-white/10' : 'border-slate-200'}`}>
                 <div className="flex items-center justify-between mb-3">
-                    <h3 className="font-bold text-white text-sm">Slide {slideIndex + 1} of {totalSlides}</h3>
-                    <div className="text-xs text-slate-400 px-2 py-1 bg-white/10 rounded">
+                    <h3 className={`font-bold text-sm ${isDark ? 'text-white' : 'text-slate-900'}`}>Slide {slideIndex + 1} of {totalSlides}</h3>
+                    <div className={`text-xs px-2 py-1 rounded ${isDark ? 'text-slate-400 bg-white/10' : 'text-slate-600 bg-slate-100'}`}>
                         {currentSlide.type}
                     </div>
                 </div>
-                <p className="text-xs text-slate-400">
+                <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
                     {currentSlide.props?.actionTitle || currentSlide.props?.title || 'Slide'}
                 </p>
             </div>
@@ -111,10 +110,10 @@ export const SlideEditor: React.FC<SlideEditorProps> = ({
             </div>
 
             {/* Action Buttons */}
-            <div className="border-t border-white/10 p-4 flex-shrink-0 space-y-2">
+            <div className={`border-t p-4 flex-shrink-0 space-y-2 ${isDark ? 'border-white/10' : 'border-slate-200'}`}>
                 <button
                     onClick={exportToPPT}
-                    className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-primary to-magenta text-white font-medium rounded-lg hover:shadow-lg hover:shadow-primary/30 transition-all text-sm"
+                    className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-primary text-white font-medium rounded-lg hover:shadow-lg hover:shadow-primary/30 transition-all text-sm"
                 >
                     <Download size={16} />
                     Download Deck
@@ -123,20 +122,20 @@ export const SlideEditor: React.FC<SlideEditorProps> = ({
                 <div className="grid grid-cols-2 gap-2">
                     <button
                         onClick={handleDuplicate}
-                        className="flex items-center justify-center gap-2 px-3 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors text-sm"
+                        className={`flex items-center justify-center gap-2 px-3 py-2 rounded-lg transition-colors text-sm ${isDark ? 'bg-white/10 hover:bg-white/20 text-white' : 'bg-slate-200 hover:bg-slate-300 text-slate-900'}`}
                     >
                         <Copy size={14} />
                         Duplicate
                     </button>
                     <button
                         onClick={handleDelete}
-                        className="flex items-center justify-center gap-2 px-3 py-2 bg-red-500/20 hover:bg-red-500/30 text-red-300 rounded-lg transition-colors text-sm"
+                        className={`flex items-center justify-center gap-2 px-3 py-2 rounded-lg transition-colors text-sm ${isDark ? 'bg-red-500/20 hover:bg-red-500/30 text-red-300' : 'bg-red-100 hover:bg-red-200 text-red-700'}`}
                     >
                         <Trash2 size={14} />
                         Delete
                     </button>
                 </div>
             </div>
-        </motion.div>
+        </div>
     );
 };

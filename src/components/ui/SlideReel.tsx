@@ -47,25 +47,29 @@ export const SlideReel: React.FC<SlideReelProps> = ({ currentIndex, onSelect }) 
                     const Component = Tool?.component;
 
                     return (
-                        <motion.button
-                            key={slide.id}
-                            onClick={() => onSelect(idx)}
-                            layoutId={`slide-thumb-${slide.id}`}
-                            className={clsx(
-                                "relative flex-shrink-0 w-32 aspect-video rounded-lg overflow-hidden border-2 transition-all duration-300 group",
-                                isActive ? "border-primary scale-105 shadow-[0_0_20px_rgba(236,72,153,0.4)]" : "border-white/10 opacity-60 hover:opacity-100 hover:border-white/30"
-                            )}
-                        >
-                            {/* Tiny Preview */}
-                            <div className="absolute inset-0 pointer-events-none origin-top-left transform scale-[0.066] w-[1920px] h-[1080px] bg-slate-900">
-                                {Component && <Component {...slide.props} variant="minimal" />}
-                            </div>
+                        <div key={slide.id} style={{ perspective: '800px' }}>
+                            <motion.button
+                                onClick={() => onSelect(idx)}
+                                layoutId={`slide-thumb-${slide.id}`}
+                                whileHover={{ rotateX: 6, rotateY: -6, scale: 1.06 }}
+                                transition={{ duration: 0.2 }}
+                                style={{ transformStyle: 'preserve-3d' }}
+                                className={clsx(
+                                    "relative flex-shrink-0 w-32 aspect-video rounded-lg overflow-hidden border-2 transition-all duration-300 group",
+                                    isActive ? "border-primary scale-105 shadow-[0_0_20px_rgba(236,72,153,0.4)]" : "border-white/10 opacity-60 hover:opacity-100 hover:border-white/30"
+                                )}
+                            >
+                                {/* Tiny Preview */}
+                                <div className="absolute inset-0 pointer-events-none origin-top-left transform scale-[0.066] w-[1920px] h-[1080px] bg-slate-900">
+                                    {Component && <Component {...slide.props} variant="minimal" />}
+                                </div>
 
-                            {/* Overlay Number */}
-                            <div className="absolute bottom-1 right-1 px-1.5 py-0.5 bg-black/60 rounded text-[8px] font-mono text-white/80">
-                                {idx + 1}
-                            </div>
-                        </motion.button>
+                                {/* Overlay Number */}
+                                <div className="absolute bottom-1 right-1 px-1.5 py-0.5 bg-black/60 rounded text-[8px] font-mono text-white/80">
+                                    {idx + 1}
+                                </div>
+                            </motion.button>
+                        </div>
                     );
                 })}
             </div>

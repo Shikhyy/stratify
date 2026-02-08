@@ -2,6 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { THEME } from '../../context/DeckContext';
 import { ConsultingLayout, type Section } from '../layout/ConsultingLayout';
+import { useTheme } from '../../context/ThemeContext';
 
 interface FinancialImpactSlideProps {
     actionTitle?: string;
@@ -24,6 +25,7 @@ export const FinancialImpactSlide: React.FC<FinancialImpactSlideProps> = ({
     section = 'Impact',
     source = "Internal Projections"
 }) => {
+    const { isDark } = useTheme();
     const max = Math.max(...data.map(d => d.value), 1);
 
     return (
@@ -35,35 +37,35 @@ export const FinancialImpactSlide: React.FC<FinancialImpactSlideProps> = ({
         >
             <div className="w-full h-full flex flex-col p-4">
                 {/* Assumptions Box */}
-                <div className="mb-6 p-4 bg-slate-50 border-l-4 border-slate-300 text-sm text-slate-600 italic">
-                    <span className="font-bold not-italic text-slate-800 mr-2">Core Assumptions:</span>
+                <div className={`mb-6 p-3 border text-xs ${isDark ? 'bg-white/5 border-white/20 text-slate-300' : 'bg-slate-50 border-slate-200 text-slate-600'}`}>
+                    <span className={`font-semibold mr-2 ${isDark ? 'text-slate-200' : 'text-slate-700'}`}>Assumptions:</span>
                     {assumptions}
                 </div>
 
                 {/* Chart Area */}
-                <div className="flex-1 flex items-end justify-around pb-8 px-12 border-b border-slate-200">
+                <div className={`flex-1 flex items-end justify-around pb-6 px-8 border-b ${isDark ? 'border-white/10' : 'border-slate-200'}`}>
                     {data.map((item, idx) => {
                         const heightPercent = (item.value / max) * 100;
+                        const barColor = item.type === 'Base'
+                            ? THEME.primary
+                            : item.type === 'Bull'
+                                ? '#0EA5A4'
+                                : '#E11D48';
+
                         return (
-                            <div key={idx} className="flex flex-col items-center gap-2 group w-24">
-                                <div className="font-bold text-2xl text-slate-800">${item.value}M</div>
+                            <div key={idx} className="flex flex-col items-center gap-2 w-24">
+                                <div className={`font-semibold text-lg ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>${item.value}M</div>
 
                                 <motion.div
                                     initial={{ height: 0 }}
                                     animate={{ height: `${heightPercent}%` }}
-                                    transition={{ duration: 1, delay: idx * 0.2 }}
-                                    className="w-full rounded-t-md relative overflow-hidden"
-                                    style={{
-                                        backgroundColor: item.type === 'Base' ? THEME.primary :
-                                            item.type === 'Bull' ? '#10B981' : '#F43F5E',
-                                        opacity: 0.9
-                                    }}
-                                >
-                                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
-                                </motion.div>
+                                    transition={{ duration: 0.8, delay: idx * 0.1 }}
+                                    className="w-full rounded-t-sm"
+                                    style={{ backgroundColor: barColor }}
+                                />
 
-                                <div className="text-sm font-semibold text-slate-500 mt-2">{item.year}</div>
-                                <div className="text-xs uppercase tracking-wider text-slate-400 font-bold">{item.type}</div>
+                                <div className={`text-xs font-semibold mt-2 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{item.year}</div>
+                                <div className={`text-[10px] uppercase tracking-wider font-semibold ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{item.type}</div>
                             </div>
                         );
                     })}

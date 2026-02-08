@@ -7,12 +7,12 @@ export interface Slide {
     props: any;
 }
 
-// Fixed pink/magenta theme
+// CBS-style neutral palette with a single accent
 export const THEME = {
-    primary: '#EC4899',
-    secondary: '#831843',
-    magenta: '#D946EF',
-    purple: '#A855F7',
+    primary: '#2563EB',
+    secondary: '#0EA5A4',
+    magenta: '#2563EB',
+    purple: '#0EA5A4',
 };
 
 interface DeckContextType {

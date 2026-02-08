@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { THEME } from '../../context/DeckContext';
+import { useTheme } from '../../context/ThemeContext';
 
 interface MarketWaterfallProps {
     tam: number;
@@ -10,6 +11,7 @@ interface MarketWaterfallProps {
 }
 
 export const MarketWaterfall: React.FC<MarketWaterfallProps> = ({ tam, sam, som, currency }) => {
+    const { isDark } = useTheme();
     const max = tam;
 
     const formatMoney = (val: number) => {
@@ -21,7 +23,7 @@ export const MarketWaterfall: React.FC<MarketWaterfallProps> = ({ tam, sam, som,
             initial={{ y: 50, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ type: "spring", stiffness: 200, damping: 20 }}
-            className="w-full h-full bg-white text-slate-900 flex flex-col p-8"
+            className={`w-full h-full flex flex-col p-8 ${isDark ? 'bg-slate-900 text-white' : 'bg-white text-slate-900'}`}
         >
             <h3 className="text-2xl font-bold mb-8" style={{ color: THEME.secondary }}>Market Opportunity</h3>
 
@@ -41,13 +43,15 @@ export const MarketWaterfall: React.FC<MarketWaterfallProps> = ({ tam, sam, som,
                             style={{ backgroundColor: item.color, minHeight: '10px' }}
                         >
                             {/* Tooltip on hover */}
-                            <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-black text-white px-2 py-1 rounded text-xs opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
+                            <div className={`absolute -top-12 left-1/2 -translate-x-1/2 px-2 py-1 rounded text-xs opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10 ${
+                                isDark ? 'bg-white text-slate-900' : 'bg-black text-white'
+                            }`}>
                                 {item.sub}: {formatMoney(item.value)}
                             </div>
                         </motion.div>
                         <div className="mt-4 text-center">
-                            <div className="text-2xl font-bold text-slate-800">{item.label}</div>
-                            <div className="text-xs text-slate-500 uppercase tracking-wider">{item.sub}</div>
+                            <div className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>{item.label}</div>
+                            <div className={`text-xs uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{item.sub}</div>
                         </div>
                     </div>
                 ))}

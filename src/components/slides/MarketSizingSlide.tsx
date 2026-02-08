@@ -2,6 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { ConsultingLayout, type Section } from '../layout/ConsultingLayout';
 import { THEME } from '../../context/DeckContext';
+import { useTheme } from '../../context/ThemeContext';
 
 interface MarketSizingSlideProps {
     actionTitle?: string;
@@ -20,6 +21,7 @@ export const MarketSizingSlide: React.FC<MarketSizingSlideProps> = ({
     section = 'Analysis',
     phase
 }) => {
+    const { isDark } = useTheme();
     const activeSection = phase || section;
 
     // Extract sources
@@ -51,10 +53,10 @@ export const MarketSizingSlide: React.FC<MarketSizingSlideProps> = ({
                     return (
                         <div key={idx} className="flex flex-col items-center relative group" style={{ width: `${100 / safeSegments.length - 5}%` }}>
                             {/* Value Label */}
-                            <div className="text-3xl font-bold mb-3 text-slate-800 flex items-baseline gap-1">
-                                {seg.value}
+                            <div className={`text-2xl font-semibold mb-3 flex items-baseline gap-2 ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>
+                                ${seg.value}B
                                 {seg.growth && (
-                                    <span className="text-sm text-slate-500 font-normal">
+                                    <span className={`text-xs font-medium ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
                                         CAGR {seg.growth}
                                     </span>
                                 )}
@@ -64,16 +66,14 @@ export const MarketSizingSlide: React.FC<MarketSizingSlideProps> = ({
                             <motion.div
                                 initial={{ height: 0 }}
                                 animate={{ height: `${heightPercent}%` }}
-                                transition={{ duration: 1.2, ease: 'circOut', delay: idx * 0.15 }}
-                                className="w-full rounded-t-lg shadow-xl relative overflow-hidden min-h-[60px]"
-                                style={{ backgroundColor: idx === 0 ? THEME.secondary : THEME.primary }}
-                            >
-                                <div className="absolute inset-0 bg-gradient-to-tr from-black/10 to-white/10" />
-                            </motion.div>
+                                transition={{ duration: 0.9, ease: 'easeOut', delay: idx * 0.1 }}
+                                className="w-full rounded-t-md relative overflow-hidden min-h-[60px]"
+                                style={{ backgroundColor: idx === 0 ? THEME.primary : isDark ? '#475569' : '#CBD5E1' }}
+                            />
 
                             {/* X-Axis Label */}
                             <div className="mt-4 text-center w-full">
-                                <div className="font-bold text-slate-800 text-base border-t-2 pt-3 border-slate-300 px-2">
+                                <div className={`font-semibold text-sm border-t pt-3 px-2 ${isDark ? 'text-slate-300 border-white/20' : 'text-slate-700 border-slate-300'}`}>
                                     {seg.name}
                                 </div>
                             </div>

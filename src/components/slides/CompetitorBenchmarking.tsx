@@ -1,8 +1,8 @@
 import React from 'react';
-import { motion } from 'framer-motion';
 import { THEME } from '../../context/DeckContext';
 import { ConsultingLayout, type Section } from '../layout/ConsultingLayout';
 import { clsx } from 'clsx';
+import { useTheme } from '../../context/ThemeContext';
 
 interface CompetitorBenchmarkingProps {
     actionTitle?: string;
@@ -26,6 +26,7 @@ export const CompetitorBenchmarking: React.FC<CompetitorBenchmarkingProps> = ({
     phase,
     source
 }) => {
+    const { isDark } = useTheme();
     const activeSection = phase || section;
     const sources = source ? [source] : [];
 
@@ -33,11 +34,8 @@ export const CompetitorBenchmarking: React.FC<CompetitorBenchmarkingProps> = ({
     const HarveyBall = ({ score }: { score: number }) => {
         // 0 = Empty, 1 = Half, 2 = Full
         return (
-            <div className="w-8 h-8 rounded-full border-2 border-slate-400 relative overflow-hidden bg-white mx-auto">
-                <motion.div
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ delay: 0.5 }}
+            <div className={`w-6 h-6 rounded-full border-2 relative overflow-hidden mx-auto ${isDark ? 'border-white/30 bg-slate-800' : 'border-slate-300 bg-white'}`}>
+                <div
                     style={{ backgroundColor: THEME.primary }}
                     className={clsx(
                         "absolute inset-0 origin-left",
@@ -59,10 +57,10 @@ export const CompetitorBenchmarking: React.FC<CompetitorBenchmarkingProps> = ({
         >
             <div className="flex flex-col w-full h-full pt-4">
                 {/* Header Row */}
-                <div className="flex border-b-2 border-slate-800 pb-2 mb-2">
-                    <div className="w-1/4 font-serif italic text-slate-500 flex items-end pb-1">Criteria</div>
+                <div className={`flex border-b pb-2 mb-2 ${isDark ? 'border-white/20' : 'border-slate-300'}`}>
+                    <div className={`w-1/4 text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Criteria</div>
                     {competitors.map(comp => (
-                        <div key={comp} className="flex-1 text-center font-bold text-lg text-slate-800">
+                        <div key={comp} className={`flex-1 text-center text-sm font-semibold ${isDark ? 'text-slate-200' : 'text-slate-700'}`}>
                             {comp}
                         </div>
                     ))}
@@ -70,23 +68,21 @@ export const CompetitorBenchmarking: React.FC<CompetitorBenchmarkingProps> = ({
 
                 {/* Rows */}
                 {criteria.map((crit, rowIdx) => (
-                    <motion.div
+                    <div
                         key={crit}
-                        initial={{ opacity: 0, x: -10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: rowIdx * 0.1 }}
                         className={clsx(
-                            "flex items-center py-4 border-b border-slate-200",
-                            rowIdx % 2 === 0 ? "bg-slate-50/50" : "bg-white"
+                            "flex items-center py-4 border-b",
+                            isDark ? "border-white/10" : "border-slate-200",
+                            rowIdx % 2 === 0 ? (isDark ? "bg-white/5" : "bg-white") : (isDark ? "bg-white/10" : "bg-slate-50/40")
                         )}
                     >
-                        <div className="w-1/4 font-semibold text-slate-700 pl-2">{crit}</div>
+                        <div className={`w-1/4 text-sm font-medium pl-2 ${isDark ? 'text-slate-200' : 'text-slate-700'}`}>{crit}</div>
                         {competitors.map((_, colIdx) => (
                             <div key={colIdx} className="flex-1">
                                 <HarveyBall score={scores?.[rowIdx]?.[colIdx] ?? 0} />
                             </div>
                         ))}
-                    </motion.div>
+                    </div>
                 ))}
             </div>
         </ConsultingLayout>

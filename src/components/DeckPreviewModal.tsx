@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { useDeck } from '../context/DeckContext';
+import { useTheme } from '../context/ThemeContext';
 import { STRATIFY_TOOLS } from '../tambo.config';
 
 interface DeckPreviewModalProps {
@@ -15,6 +15,7 @@ export const DeckPreviewModal: React.FC<DeckPreviewModalProps> = ({
     onClose,
     initialIndex = 0,
 }) => {
+    const { isDark } = useTheme();
     const { slides } = useDeck();
     const [currentIndex, setCurrentIndex] = useState(initialIndex);
 
@@ -55,45 +56,39 @@ export const DeckPreviewModal: React.FC<DeckPreviewModalProps> = ({
     }, [currentSlide]);
 
     return (
-        <AnimatePresence>
+        <div>
             {isOpen && (
-                <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="fixed inset-0 z-[100] bg-black/70 backdrop-blur-sm flex items-center justify-center p-6"
+                <div
+                    className={`fixed inset-0 z-[100] flex items-center justify-center p-6 ${isDark ? 'bg-black/70 backdrop-blur-sm' : 'bg-black/30'}`}
                 >
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.97, y: 10 }}
-                        animate={{ opacity: 1, scale: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.98, y: 10 }}
-                        className="relative w-full max-w-6xl bg-slate-950 border border-white/10 rounded-2xl shadow-2xl overflow-hidden"
+                    <div
+                        className={`relative w-full max-w-6xl rounded-2xl shadow-2xl overflow-hidden ${isDark ? 'bg-slate-950 border border-white/10' : 'bg-white border border-slate-300'}`}
                     >
-                        <div className="flex items-center justify-between px-5 py-4 border-b border-white/10">
-                            <div className="text-sm text-white/80">
+                        <div className={`flex items-center justify-between px-5 py-4 border-b ${isDark ? 'border-white/10' : 'border-slate-200'}`}>
+                            <div className={`text-sm ${isDark ? 'text-white/80' : 'text-slate-700'}`}>
                                 Deck Preview {slides.length > 0 ? `(${currentIndex + 1} / ${slides.length})` : ''}
                             </div>
                             <button
                                 onClick={onClose}
-                                className="p-2 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition-colors"
+                                className={`p-2 rounded-lg transition-colors ${isDark ? 'text-white/70 hover:text-white hover:bg-white/10' : 'text-slate-700 hover:text-slate-900 hover:bg-slate-100'}`}
                                 aria-label="Close preview"
                             >
                                 <X size={18} />
                             </button>
                         </div>
 
-                        <div className="relative bg-slate-900/50 p-6">
+                        <div className={`relative p-6 ${isDark ? 'bg-slate-900/50' : 'bg-slate-50'}`}>
                             {slides.length === 0 ? (
-                                <div className="flex items-center justify-center h-[420px] text-slate-400 text-sm">
+                                <div className={`flex items-center justify-center h-[420px] text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
                                     No slides to preview yet.
                                 </div>
                             ) : (
                                 <div className="relative">
-                                    <div className="w-full aspect-video rounded-xl overflow-hidden border border-white/10 bg-slate-900">
+                                    <div className={`w-full aspect-video rounded-xl overflow-hidden border ${isDark ? 'border-white/10 bg-slate-900' : 'border-slate-300 bg-white'}`}>
                                         {SlideComponent ? (
                                             <SlideComponent {...currentSlide.props} />
                                         ) : (
-                                            <div className="flex items-center justify-center h-full text-slate-400 text-sm">
+                                            <div className="flex items-center justify-center h-full text-slate-600 text-sm">
                                                 Unsupported slide type for preview.
                                             </div>
                                         )}
@@ -101,7 +96,7 @@ export const DeckPreviewModal: React.FC<DeckPreviewModalProps> = ({
 
                                     <button
                                         onClick={handlePrev}
-                                        className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 p-3 bg-slate-900/90 border border-white/10 rounded-full text-white/70 hover:text-white hover:bg-slate-800 transition-colors"
+                                        className={`absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 p-3 rounded-full border transition-colors ${isDark ? 'bg-slate-900/90 border-white/10 text-white/70 hover:text-white hover:bg-slate-800' : 'bg-white border-slate-300 text-slate-700 hover:text-slate-900 hover:bg-slate-100'}`}
                                         aria-label="Previous slide"
                                         disabled={slides.length === 0}
                                     >
@@ -109,7 +104,7 @@ export const DeckPreviewModal: React.FC<DeckPreviewModalProps> = ({
                                     </button>
                                     <button
                                         onClick={handleNext}
-                                        className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 p-3 bg-slate-900/90 border border-white/10 rounded-full text-white/70 hover:text-white hover:bg-slate-800 transition-colors"
+                                        className={`absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 p-3 rounded-full border transition-colors ${isDark ? 'bg-slate-900/90 border-white/10 text-white/70 hover:text-white hover:bg-slate-800' : 'bg-white border-slate-300 text-slate-700 hover:text-slate-900 hover:bg-slate-100'}`}
                                         aria-label="Next slide"
                                         disabled={slides.length === 0}
                                     >
@@ -118,9 +113,9 @@ export const DeckPreviewModal: React.FC<DeckPreviewModalProps> = ({
                                 </div>
                             )}
                         </div>
-                    </motion.div>
-                </motion.div>
+                    </div>
+                </div>
             )}
-        </AnimatePresence>
+        </div>
     );
 };

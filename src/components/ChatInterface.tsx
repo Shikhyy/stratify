@@ -9,12 +9,14 @@ import { STRATIFY_TOOLS } from '../tambo.config';
 import type { Slide } from '../context/DeckContext';
 import { useDeck } from '../context/DeckContext';
 import { ErrorBoundary } from './ui/ErrorBoundary';
+import { useTheme } from '../context/ThemeContext';
 
 interface ChatInterfaceProps {
     currentSlide?: Slide;
 }
 
 export const ChatInterface: React.FC<ChatInterfaceProps> = ({ currentSlide }) => {
+    const { isDark } = useTheme();
     const sectionRef = useRef<HTMLDivElement>(null);
     const { thread } = useTamboThread();
     const { value, setValue, submit, isPending } = useTamboThreadInput();
@@ -106,15 +108,15 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ currentSlide }) =>
     };
 
     return (
-        <div className="flex flex-col h-full bg-slate-900/40 overflow-hidden">
+        <div className={`flex flex-col h-full overflow-hidden ${isDark ? 'bg-slate-900/40' : 'bg-slate-50'}`}>
             {/* Header */}
-            <div className="bg-gradient-to-r from-primary/10 to-magenta/10 border-b border-primary/20 p-5 flex items-center gap-3 flex-shrink-0">
+            <div className={`bg-gradient-to-r from-primary/10 to-magenta/10 border-b border-primary/20 p-5 flex items-center gap-3 flex-shrink-0 ${isDark ? '' : ''}`}>
                 <div className="p-2.5 bg-primary/20 rounded-xl">
                     <Sparkles size={20} className="text-primary" />
                 </div>
                 <div>
-                    <h3 className="font-bold text-white text-sm">Stratify Copilot</h3>
-                    <p className="text-xs text-white/50">Your AI Strategy Assistant</p>
+                    <h3 className={`font-bold text-sm ${isDark ? 'text-white' : 'text-slate-900'}`}>Stratify Copilot</h3>
+                    <p className={`text-xs ${isDark ? 'text-white/50' : 'text-slate-600'}`}>Your AI Strategy Assistant</p>
                 </div>
             </div>
 
@@ -196,7 +198,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ currentSlide }) =>
                         animate={{ opacity: 1 }}
                         className="flex justify-start"
                     >
-                        <div className="bg-white/10 px-4 py-2.5 rounded-xl text-slate-400 text-xs flex items-center gap-2 border border-white/10">
+                        <div className={`px-4 py-2.5 rounded-xl text-xs flex items-center gap-2 border ${isDark ? 'bg-white/10 text-slate-400 border-white/10' : 'bg-slate-100 text-slate-600 border-slate-300'}`}>
                             <span className="w-2 h-2 bg-primary rounded-full animate-bounce" />
                             <span className="w-2 h-2 bg-magenta rounded-full animate-bounce delay-75" />
                             <span className="w-2 h-2 bg-purple rounded-full animate-bounce delay-150" />
@@ -207,7 +209,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ currentSlide }) =>
             </div>
 
             {/* Input */}
-            <div className="p-4 bg-gradient-to-t from-slate-900/60 to-slate-900/40 border-t border-white/10 flex-shrink-0">
+            <div className={`p-4 border-t flex-shrink-0 ${isDark ? 'bg-gradient-to-t from-slate-900/60 to-slate-900/40 border-white/10' : 'bg-white border-slate-200'}`}>
                 <div className="relative">
                     <input
                         type="text"
@@ -215,7 +217,9 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ currentSlide }) =>
                         onChange={(e) => setValue(e.target.value)}
                         onKeyDown={handleKeyDown}
                         placeholder="Ask Stratify to generate slides..."
-                        className="w-full bg-slate-800/50 border border-white/15 rounded-xl pl-4 pr-12 py-3 text-sm text-white focus:outline-none focus:border-primary/50 transition-colors placeholder:text-white/30"
+                        className={`w-full border rounded-xl pl-4 pr-12 py-3 text-sm focus:outline-none focus:border-primary/50 transition-colors ${
+                            isDark ? 'bg-slate-800/50 border-white/15 text-white placeholder:text-white/30' : 'bg-slate-50 border-slate-300 text-slate-900 placeholder:text-slate-500'
+                        }`}
                     />
                     <button
                         onClick={() => submit(value)}

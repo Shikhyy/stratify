@@ -2,6 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { ConsultingLayout, type Section } from '../layout/ConsultingLayout';
 import { THEME } from '../../context/DeckContext';
+import { useTheme } from '../../context/ThemeContext';
 
 interface ChevronStep {
     title: string;
@@ -27,6 +28,7 @@ export const ChevronProcess: React.FC<ChevronProcessProps> = ({
     section = 'Strategy',
     source
 }) => {
+    const { isDark } = useTheme();
     const activeSection = section;
     const sources = source ? [source] : [];
 
@@ -49,26 +51,28 @@ export const ChevronProcess: React.FC<ChevronProcessProps> = ({
                     >
                         {/* Chevron Shape */}
                         <div
-                            className="absolute inset-0 shadow-lg flex flex-col p-8 transition-transform group-hover:-translate-y-2"
+                            className={`absolute inset-0 flex flex-col p-8 border ${isDark ? 'border-white/20' : 'border-slate-200'}`}
                             style={{
-                                backgroundColor: idx % 2 === 0 ? THEME.primary : THEME.secondary,
+                                backgroundColor: isDark 
+                                    ? (idx % 2 === 0 ? '#1E293B' : '#0F172A')
+                                    : (idx % 2 === 0 ? '#F8FAFC' : '#FFFFFF'),
                                 clipPath: 'polygon(0% 0%, 90% 0%, 100% 50%, 90% 100%, 0% 100%, 10% 50%)',
-                                marginLeft: idx === 0 ? 0 : '-40px', // Overlap
-                                paddingLeft: idx === 0 ? '2rem' : '4rem' // Adjust content padding
+                                marginLeft: idx === 0 ? 0 : '-40px',
+                                paddingLeft: idx === 0 ? '2rem' : '4rem'
                             }}
                         >
-                            <div className="text-white/50 font-bold text-6xl absolute top-2 right-12 select-none pointer-events-none">
+                            <div className={`font-semibold text-5xl absolute top-3 right-10 select-none pointer-events-none ${isDark ? 'text-white/10' : 'text-slate-300'}`}>
                                 0{idx + 1}
                             </div>
 
-                            <h3 className="text-white font-bold text-2xl mt-8 mb-6 border-b border-white/20 pb-4 relative z-10">
+                            <h3 className={`font-semibold text-xl mt-8 mb-4 border-b pb-3 relative z-10 ${isDark ? 'text-white border-white/20' : 'text-slate-900 border-slate-200'}`}>
                                 {step.title}
                             </h3>
 
-                            <ul className="space-y-4 relative z-10">
+                            <ul className="space-y-3 relative z-10">
                                 {step.bullets?.map(b => (
-                                    <li key={b} className="flex items-start gap-3 text-white/90 text-sm font-medium leading-relaxed">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-white mt-1.5 shrink-0" />
+                                    <li key={b} className={`flex items-start gap-3 text-sm leading-relaxed ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
+                                        <div className="w-1.5 h-1.5 rounded-full mt-1.5 shrink-0" style={{ backgroundColor: THEME.primary }} />
                                         {b}
                                     </li>
                                 ))}

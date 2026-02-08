@@ -1,5 +1,7 @@
-import type { CaseInput, PitchBlock } from '../context/PitchContext';
+import type { CaseInput, PitchBlock, JudgeScore } from '../context/PitchContext';
 import type { Slide } from '../context/DeckContext';
+import type { SlideSpec } from '../types/deck';
+import { selectVisual } from './infographicEngine';
 
 export type CaseType = 'growth' | 'profitability' | 'market-entry' | 'turnaround' | 'adoption' | 'other';
 
@@ -25,6 +27,7 @@ export interface StorylineSlide {
     visualType: 'bar' | 'waterfall' | 'flow' | 'matrix' | 'timeline' | 'title';
     slideType: Slide['type'];
     props: Record<string, any>;
+    spec: SlideSpec;
 }
 
 const toSlug = (value: string) =>
@@ -32,6 +35,22 @@ const toSlug = (value: string) =>
         .toLowerCase()
         .replace(/[^a-z0-9]+/g, '-')
         .replace(/(^-|-$)/g, '');
+
+const toLegacyVisualType = (visualType: SlideSpec['visualType']): StorylineSlide['visualType'] => {
+    switch (visualType) {
+        case '2x2':
+            return 'matrix';
+        case 'pyramid':
+            return 'flow';
+        case 'bar':
+        case 'flow':
+        case 'waterfall':
+        case 'timeline':
+            return visualType;
+        default:
+            return 'flow';
+    }
+};
 
 const classifyCaseType = (problemStatement: string, targetMetric: string): CaseType => {
     const text = `${problemStatement} ${targetMetric}`.toLowerCase();
@@ -149,6 +168,18 @@ export const buildStorylineOutline = (
     const pillars = buildPillars(deconstruction.caseType);
     const slug = toSlug(input.caseTitle || 'case');
 
+    const execVisual = selectVisual('strategy', 'flow');
+    const problemVisual = selectVisual('insight', 'bar');
+    const insightVisual = selectVisual('insight', '2x2');
+    const strategyVisual = selectVisual('strategy', 'flow');
+    const pillar1Visual = selectVisual('strategy', 'waterfall');
+    const pillar2Visual = selectVisual('strategy', '2x2');
+    const pillar3Visual = selectVisual('strategy', 'bar');
+    const financialVisual = selectVisual('finance', 'waterfall');
+    const roadmapVisual = selectVisual('roadmap', 'timeline');
+    const riskVisual = selectVisual('risk', '2x2');
+    const closingVisual = selectVisual('insight', 'flow');
+
     const storyline: StorylineSlide[] = [
         {
             id: `${slug}-exec-summary`,
@@ -156,13 +187,23 @@ export const buildStorylineOutline = (
             question: 'What should the team do right now?',
             headline: `Recommendation: pursue a focused 3-pillar plan to hit ${input.targetMetric}.`,
             bullets: pillars.map(p => p.title).slice(0, 3),
-            visualType: 'flow',
-            slideType: 'ChevronProcess',
+            visualType: toLegacyVisualType(execVisual.visualType),
+            slideType: execVisual.slideType,
             props: {
                 actionTitle: 'Executive Summary',
                 kicker: coreInsight,
                 section: 'Strategy',
                 steps: pillars.map(p => ({ title: p.title, bullets: p.bullets }))
+            },
+            spec: {
+                slideType: 'strategy',
+                headline: `Recommendation: pursue a focused 3-pillar plan to hit ${input.targetMetric}.`,
+                keyPoints: pillars.map(p => p.title).slice(0, 3),
+                visualType: execVisual.visualType,
+                visualData: {
+                    steps: pillars.map(p => ({ title: p.title, bullets: p.bullets }))
+                },
+                takeaway: coreInsight
             }
         },
         {
@@ -175,8 +216,8 @@ export const buildStorylineOutline = (
                 `Success metric: ${deconstruction.successMetric}`,
                 `Case type: ${deconstruction.caseType.replace('-', ' ')}`
             ],
-            visualType: 'bar',
-            slideType: 'MarketSizingSlide',
+            visualType: toLegacyVisualType(problemVisual.visualType),
+            slideType: problemVisual.slideType,
             props: {
                 actionTitle: 'Problem Definition',
                 kicker: `Target: ${deconstruction.successMetric}`,
@@ -186,6 +227,24 @@ export const buildStorylineOutline = (
                     { name: 'Addressable Lever', value: 75, growth: '12%' },
                     { name: 'Within Constraints', value: 60, growth: '10%' }
                 ]
+            },
+            spec: {
+                slideType: 'insight',
+                headline: `Objective: ${deconstruction.objective}.`,
+                keyPoints: [
+                    `Constraint: ${input.constraints}`,
+                    `Success metric: ${deconstruction.successMetric}`,
+                    `Case type: ${deconstruction.caseType.replace('-', ' ')}`
+                ],
+                visualType: problemVisual.visualType,
+                visualData: {
+                    segments: [
+                        { name: 'Target Gap', value: 100, growth: '15%' },
+                        { name: 'Addressable Lever', value: 75, growth: '12%' },
+                        { name: 'Within Constraints', value: 60, growth: '10%' }
+                    ]
+                },
+                takeaway: `Target: ${deconstruction.successMetric}`
             }
         },
         {
@@ -194,8 +253,8 @@ export const buildStorylineOutline = (
             question: 'What non-obvious insight changes the strategy?',
             headline: coreInsight,
             bullets: insights.slice(0, 3).map(i => i.statement),
-            visualType: 'matrix',
-            slideType: 'HarveyBallMatrix',
+            visualType: toLegacyVisualType(insightVisual.visualType),
+            slideType: insightVisual.slideType,
             props: {
                 actionTitle: 'Key Insight',
                 kicker: 'Insight shifts the decision logic.',
@@ -207,6 +266,22 @@ export const buildStorylineOutline = (
                     [0, 2],
                     [1, 2]
                 ]
+            },
+            spec: {
+                slideType: 'insight',
+                headline: coreInsight,
+                keyPoints: insights.slice(0, 3).map(i => i.statement),
+                visualType: insightVisual.visualType,
+                visualData: {
+                    columns: ['Current', 'Target'],
+                    rows: ['Cost Base', 'Growth Engine', 'Execution Speed'],
+                    scores: [
+                        [1, 2],
+                        [0, 2],
+                        [1, 2]
+                    ]
+                },
+                takeaway: 'Insight shifts the decision logic.'
             }
         },
         {
@@ -215,13 +290,23 @@ export const buildStorylineOutline = (
             question: 'How do we structure the solution?',
             headline: 'Strategy built around three mutually reinforcing pillars.',
             bullets: pillars.map(p => p.title).slice(0, 3),
-            visualType: 'flow',
-            slideType: 'ChevronProcess',
+            visualType: toLegacyVisualType(strategyVisual.visualType),
+            slideType: strategyVisual.slideType,
             props: {
                 actionTitle: 'Strategy Overview',
                 kicker: 'Each pillar addresses a distinct constraint.',
                 section: 'Strategy',
                 steps: pillars.map(p => ({ title: p.title, bullets: p.bullets }))
+            },
+            spec: {
+                slideType: 'strategy',
+                headline: 'Strategy built around three mutually reinforcing pillars.',
+                keyPoints: pillars.map(p => p.title).slice(0, 3),
+                visualType: strategyVisual.visualType,
+                visualData: {
+                    steps: pillars.map(p => ({ title: p.title, bullets: p.bullets }))
+                },
+                takeaway: 'Each pillar addresses a distinct constraint.'
             }
         },
         {
@@ -230,8 +315,8 @@ export const buildStorylineOutline = (
             question: 'What does pillar 1 deliver?',
             headline: `${pillars[0].title} drives the immediate impact.`,
             bullets: pillars[0].bullets,
-            visualType: 'waterfall',
-            slideType: 'WaterfallBridge',
+            visualType: toLegacyVisualType(pillar1Visual.visualType),
+            slideType: pillar1Visual.slideType,
             props: {
                 actionTitle: `Pillar 1: ${pillars[0].title}`,
                 kicker: 'Delivers 40-45% of target impact in first 90 days.',
@@ -242,6 +327,21 @@ export const buildStorylineOutline = (
                     { label: 'Core Actions', value: 25, type: 'plus' },
                     { label: 'Pillar 1 Impact', value: 140, type: 'total' }
                 ]
+            },
+            spec: {
+                slideType: 'strategy',
+                headline: `${pillars[0].title} drives the immediate impact.`,
+                keyPoints: pillars[0].bullets.slice(0, 3),
+                visualType: pillar1Visual.visualType,
+                visualData: {
+                    steps: [
+                        { label: 'Baseline', value: 100, type: 'total' },
+                        { label: 'Quick Wins', value: 15, type: 'plus' },
+                        { label: 'Core Actions', value: 25, type: 'plus' },
+                        { label: 'Pillar 1 Impact', value: 140, type: 'total' }
+                    ]
+                },
+                takeaway: 'Delivers 40-45% of target impact in first 90 days.'
             }
         },
         {
@@ -250,8 +350,8 @@ export const buildStorylineOutline = (
             question: 'What does pillar 2 deliver?',
             headline: `${pillars[1].title} sustains momentum.`,
             bullets: pillars[1].bullets,
-            visualType: 'matrix',
-            slideType: 'HarveyBallMatrix',
+            visualType: toLegacyVisualType(pillar2Visual.visualType),
+            slideType: pillar2Visual.slideType,
             props: {
                 actionTitle: `Pillar 2: ${pillars[1].title}`,
                 kicker: 'Scales effectiveness across all segments.',
@@ -263,6 +363,22 @@ export const buildStorylineOutline = (
                     [1, 2],
                     [0, 2]
                 ]
+            },
+            spec: {
+                slideType: 'strategy',
+                headline: `${pillars[1].title} sustains momentum.`,
+                keyPoints: pillars[1].bullets.slice(0, 3),
+                visualType: pillar2Visual.visualType,
+                visualData: {
+                    columns: ['Pre-Initiative', 'Post-Initiative'],
+                    rows: ['Operational Efficiency', 'Customer Satisfaction', 'Market Position'],
+                    scores: [
+                        [1, 2],
+                        [1, 2],
+                        [0, 2]
+                    ]
+                },
+                takeaway: 'Scales effectiveness across all segments.'
             }
         },
         {
@@ -271,8 +387,8 @@ export const buildStorylineOutline = (
             question: 'What does pillar 3 deliver?',
             headline: `${pillars[2].title} compounds results.`,
             bullets: pillars[2].bullets,
-            visualType: 'bar',
-            slideType: 'MarketSizingSlide',
+            visualType: toLegacyVisualType(pillar3Visual.visualType),
+            slideType: pillar3Visual.slideType,
             props: {
                 actionTitle: `Pillar 3: ${pillars[2].title}`,
                 kicker: 'Long-term sustainable advantage.',
@@ -282,6 +398,20 @@ export const buildStorylineOutline = (
                     { name: 'Year 2 Impact', value: 50, growth: '20%' },
                     { name: 'Year 3 Target', value: 100, growth: '25%' }
                 ]
+            },
+            spec: {
+                slideType: 'strategy',
+                headline: `${pillars[2].title} compounds results.`,
+                keyPoints: pillars[2].bullets.slice(0, 3),
+                visualType: pillar3Visual.visualType,
+                visualData: {
+                    segments: [
+                        { name: 'Year 1 Impact', value: 25, growth: '15%' },
+                        { name: 'Year 2 Impact', value: 50, growth: '20%' },
+                        { name: 'Year 3 Target', value: 100, growth: '25%' }
+                    ]
+                },
+                takeaway: 'Long-term sustainable advantage.'
             }
         },
         {
@@ -294,8 +424,8 @@ export const buildStorylineOutline = (
                 'Pillar 2: Cost optimization +12%',
                 'Net impact: +30% above baseline'
             ],
-            visualType: 'waterfall',
-            slideType: 'WaterfallBridge',
+            visualType: toLegacyVisualType(financialVisual.visualType),
+            slideType: financialVisual.slideType,
             props: {
                 actionTitle: 'Financial Impact Bridge',
                 kicker: 'Net impact exceeds target by 15-20%.',
@@ -308,6 +438,26 @@ export const buildStorylineOutline = (
                     { label: 'Net Impact ($M)', value: 125, type: 'total' }
                 ],
                 source: 'Internal Financial Model'
+            },
+            spec: {
+                slideType: 'finance',
+                headline: 'Financial impact delivers 130-150% of target metric.',
+                keyPoints: [
+                    'Pillar 1: Revenue lift +18%',
+                    'Pillar 2: Cost optimization +12%',
+                    'Net impact: +30% above baseline'
+                ],
+                visualType: financialVisual.visualType,
+                visualData: {
+                    steps: [
+                        { label: 'Baseline ($M)', value: 100, type: 'total' },
+                        { label: 'Revenue Growth', value: 18, type: 'plus' },
+                        { label: 'Cost Savings', value: 12, type: 'plus' },
+                        { label: 'Investment', value: -5, type: 'minus' },
+                        { label: 'Net Impact ($M)', value: 125, type: 'total' }
+                    ]
+                },
+                takeaway: 'Net impact exceeds target by 15-20%.'
             }
         },
         {
@@ -316,8 +466,8 @@ export const buildStorylineOutline = (
             question: 'How do we execute without risk?',
             headline: 'Execution plan phases the work to protect speed and quality.',
             bullets: ['Phase 1: Stabilize', 'Phase 2: Scale', 'Phase 3: Optimize'],
-            visualType: 'timeline',
-            slideType: 'StrategicRoadmap',
+            visualType: toLegacyVisualType(roadmapVisual.visualType),
+            slideType: roadmapVisual.slideType,
             props: {
                 actionTitle: 'Implementation Roadmap',
                 kicker: 'Phased rollout reduces risk.',
@@ -327,6 +477,20 @@ export const buildStorylineOutline = (
                     { phase: 'Phase 2', duration: 'Months 3-5', milestones: ['Scale wins', 'Lock KPIs'] },
                     { phase: 'Phase 3', duration: 'Months 6-9', milestones: ['Optimize', 'Sustain gains'] }
                 ]
+            },
+            spec: {
+                slideType: 'roadmap',
+                headline: 'Execution plan phases the work to protect speed and quality.',
+                keyPoints: ['Phase 1: Stabilize', 'Phase 2: Scale', 'Phase 3: Optimize'],
+                visualType: roadmapVisual.visualType,
+                visualData: {
+                    phases: [
+                        { phase: 'Phase 1', duration: 'Months 1-2', milestones: ['Mobilize team', 'Pilot key moves'] },
+                        { phase: 'Phase 2', duration: 'Months 3-5', milestones: ['Scale wins', 'Lock KPIs'] },
+                        { phase: 'Phase 3', duration: 'Months 6-9', milestones: ['Optimize', 'Sustain gains'] }
+                    ]
+                },
+                takeaway: 'Phased rollout reduces risk.'
             }
         },
         {
@@ -335,8 +499,8 @@ export const buildStorylineOutline = (
             question: 'What could derail the plan, and how do we mitigate it?',
             headline: 'Top 3 risks identified with clear mitigation plans.',
             bullets: ['Execution risk: Dedicated PMO', 'Market risk: Phased rollout', 'Resource risk: Cross-functional team'],
-            visualType: 'matrix',
-            slideType: 'HarveyBallMatrix',
+            visualType: toLegacyVisualType(riskVisual.visualType),
+            slideType: riskVisual.slideType,
             props: {
                 actionTitle: 'Risk Assessment Matrix',
                 kicker: 'All critical risks have active mitigations.',
@@ -349,6 +513,22 @@ export const buildStorylineOutline = (
                     [1, 1, 2]
                 ],
                 source: 'Risk Assessment Workshop'
+            },
+            spec: {
+                slideType: 'risk',
+                headline: 'Top 3 risks identified with clear mitigation plans.',
+                keyPoints: ['Execution risk: Dedicated PMO', 'Market risk: Phased rollout', 'Resource risk: Cross-functional team'],
+                visualType: riskVisual.visualType,
+                visualData: {
+                    columns: ['Likelihood', 'Impact', 'Mitigation Strength'],
+                    rows: ['Execution Delays', 'Market Adoption', 'Competitive Response'],
+                    scores: [
+                        [1, 2, 2],
+                        [2, 2, 1],
+                        [1, 1, 2]
+                    ]
+                },
+                takeaway: 'All critical risks have active mitigations.'
             }
         },
         {
@@ -357,17 +537,158 @@ export const buildStorylineOutline = (
             question: 'What is the final outcome?',
             headline: 'The plan delivers a defensible, judge-ready outcome.',
             bullets: ['Clear impact', 'Credible execution', 'Sustainable advantage'],
-            visualType: 'title',
+            visualType: toLegacyVisualType(closingVisual.visualType),
             slideType: 'TitleSlide',
             props: {
                 title: 'Strategic Advantage',
                 subtitle: `Delivering ${input.targetMetric} with a focused plan`,
                 presenter: 'Stratify AI'
+            },
+            spec: {
+                slideType: 'insight',
+                headline: 'The plan delivers a defensible, judge-ready outcome.',
+                keyPoints: ['Clear impact', 'Credible execution', 'Sustainable advantage'],
+                visualType: closingVisual.visualType,
+                visualData: {
+                    summary: ['Clear impact', 'Credible execution', 'Sustainable advantage']
+                },
+                takeaway: `Delivering ${input.targetMetric} with a focused plan`
             }
         }
     ];
 
     return storyline;
+};
+
+export const regenerateWeakSlides = (
+    storyline: StorylineSlide[],
+    score: JudgeScore
+): StorylineSlide[] => {
+    const trimToThree = (items: string[]) => items.slice(0, 3);
+
+    const next = storyline.map(slide => {
+        if (slide.key === 'key-insight' && score.insightStrength < 7) {
+            const updatedBullets = [
+                'Gap is concentrated in one controllable lever.',
+                'Constraint forces sequencing, not scope.',
+                'Fast wins fund the longer-term move.'
+            ];
+
+            return {
+                ...slide,
+                headline: slide.headline.startsWith('Core insight')
+                    ? slide.headline
+                    : `Core insight: ${slide.headline}`,
+                bullets: updatedBullets,
+                props: {
+                    ...slide.props,
+                    kicker: 'Insight directly changes decision priority.'
+                },
+                spec: {
+                    ...slide.spec,
+                    headline: slide.headline.startsWith('Core insight')
+                        ? slide.headline
+                        : `Core insight: ${slide.headline}`,
+                    keyPoints: updatedBullets,
+                    takeaway: 'Insight directly changes decision priority.'
+                }
+            };
+        }
+
+        if (slide.key === 'financial-impact' && score.financialLogic < 7) {
+            const bullets = [
+                'Revenue lift: +$18M (pricing + mix)',
+                'Cost savings: +$12M (process + automation)',
+                'Net impact: +$25M after $5M investment'
+            ];
+
+            const steps = [
+                { label: 'Baseline ($M)', value: 100, type: 'total' },
+                { label: 'Revenue Growth', value: 18, type: 'plus' },
+                { label: 'Cost Savings', value: 12, type: 'plus' },
+                { label: 'Investment', value: -5, type: 'minus' },
+                { label: 'Net Impact ($M)', value: 125, type: 'total' }
+            ];
+
+            return {
+                ...slide,
+                bullets,
+                props: {
+                    ...slide.props,
+                    kicker: 'ROI positive within 6 months.',
+                    steps
+                },
+                spec: {
+                    ...slide.spec,
+                    keyPoints: bullets,
+                    visualData: { ...slide.spec.visualData, steps },
+                    takeaway: 'ROI positive within 6 months.'
+                }
+            };
+        }
+
+        if (slide.key === 'implementation-roadmap' && score.feasibility < 7) {
+            const bullets = ['Phase 1: Mobilize', 'Phase 2: Scale', 'Phase 3: Embed'];
+            const phases = [
+                { phase: 'Phase 1', duration: 'Months 1-2', milestones: ['PMO setup', 'Pilot launches', 'KPI baseline'] },
+                { phase: 'Phase 2', duration: 'Months 3-5', milestones: ['Scale pilots', 'Process redesign', 'Training'] },
+                { phase: 'Phase 3', duration: 'Months 6-9', milestones: ['Embed cadence', 'Audit results', 'Sustain'] }
+            ];
+
+            return {
+                ...slide,
+                bullets,
+                props: {
+                    ...slide.props,
+                    kicker: 'Ownership and milestones de-risk execution.',
+                    phases
+                },
+                spec: {
+                    ...slide.spec,
+                    keyPoints: bullets,
+                    visualData: { ...slide.spec.visualData, phases },
+                    takeaway: 'Ownership and milestones de-risk execution.'
+                }
+            };
+        }
+
+        if (slide.key === 'risks-mitigations' && score.feasibility < 7) {
+            const bullets = [
+                'Execution risk: PMO + weekly cadence',
+                'Market risk: staged rollout + feedback',
+                'Capability risk: training + owners'
+            ];
+
+            return {
+                ...slide,
+                bullets,
+                props: {
+                    ...slide.props,
+                    kicker: 'Risks are mitigated with ownership and cadence.'
+                },
+                spec: {
+                    ...slide.spec,
+                    keyPoints: bullets,
+                    takeaway: 'Risks are mitigated with ownership and cadence.'
+                }
+            };
+        }
+
+        return slide;
+    });
+
+    if (score.clarity < 7) {
+        return next.map(slide => ({
+            ...slide,
+            bullets: trimToThree(slide.bullets),
+            spec: {
+                ...slide.spec,
+                keyPoints: trimToThree(slide.spec.keyPoints)
+            }
+        }));
+    }
+
+    return next;
 };
 
 export const buildSlidesFromStoryline = (storyline: StorylineSlide[]): Slide[] => {

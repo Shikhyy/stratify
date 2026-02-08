@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
 import { Lock, Unlock, RefreshCw, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
 import type { PitchBlock } from '../context/PitchContext';
 import { usePitch } from '../context/PitchContext';
 import { validateBlock } from '../utils/consultingRules';
+import { useTheme } from '../context/ThemeContext';
 import { THEME } from '../context/DeckContext';
 
 interface PitchBlockProps {
@@ -35,6 +35,7 @@ export const PitchBlockComponent: React.FC<PitchBlockProps> = ({
     problemStatement,
     onRegenerate,
 }) => {
+    const { isDark } = useTheme();
     const { updateBlock, lockBlock, deleteBlock } = usePitch();
     const [isExpanded, setIsExpanded] = useState(true);
     const [isEditing, setIsEditing] = useState(false);
@@ -61,13 +62,11 @@ export const PitchBlockComponent: React.FC<PitchBlockProps> = ({
     };
 
     return (
-        <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-4 border border-white/10 rounded-xl bg-white/5 backdrop-blur-sm overflow-hidden"
+        <div
+            className={`mb-4 border rounded-xl overflow-hidden ${isDark ? 'border-white/10 bg-white/5 backdrop-blur-sm' : 'border-slate-300 bg-slate-50'}`}
         >
             {/* Header */}
-            <div className="p-4 bg-gradient-to-r from-white/5 to-transparent border-b border-white/10 flex items-center justify-between cursor-pointer hover:bg-white/10 transition-colors"
+            <div className={`p-4 border-b flex items-center justify-between cursor-pointer transition-colors ${isDark ? 'bg-gradient-to-r from-white/5 to-transparent border-white/10 hover:bg-white/10' : 'bg-white border-slate-200 hover:bg-slate-50'}`}
                 onClick={() => setIsExpanded(!isExpanded)}
             >
                 <div className="flex items-center gap-3 flex-1">
@@ -76,10 +75,10 @@ export const PitchBlockComponent: React.FC<PitchBlockProps> = ({
                         style={{ backgroundColor: THEME.primary }}
                     />
                     <div>
-                        <h3 className="font-bold text-white text-sm">
+                        <h3 className={`font-bold text-sm ${isDark ? 'text-white' : 'text-slate-900'}`}>
                             {BLOCK_TITLES[block.type]}
                         </h3>
-                        <p className="text-xs text-slate-400 mt-1">
+                        <p className={`text-xs mt-1 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
                             {block.content.substring(0, 60)}...
                         </p>
                     </div>
@@ -87,12 +86,12 @@ export const PitchBlockComponent: React.FC<PitchBlockProps> = ({
 
                 <div className="flex items-center gap-2">
                     {validation.errors.length > 0 && (
-                        <div className="text-xs px-2 py-1 bg-red-500/20 text-red-300 rounded">
+                        <div className={`text-xs px-2 py-1 rounded ${isDark ? 'bg-red-500/20 text-red-300' : 'bg-red-100 text-red-700'}`}>
                             {validation.errors.length} error
                         </div>
                     )}
                     {validation.warnings.length > 0 && (
-                        <div className="text-xs px-2 py-1 bg-yellow-500/20 text-yellow-300 rounded">
+                        <div className={`text-xs px-2 py-1 rounded ${isDark ? 'bg-yellow-500/20 text-yellow-300' : 'bg-yellow-100 text-yellow-700'}`}>
                             {validation.warnings.length} warning
                         </div>
                     )}
@@ -101,7 +100,7 @@ export const PitchBlockComponent: React.FC<PitchBlockProps> = ({
                             e.stopPropagation();
                             lockBlock(block.id);
                         }}
-                        className="p-1 hover:bg-white/10 rounded text-slate-400 hover:text-white transition-colors"
+                        className={`p-1 rounded transition-colors ${isDark ? 'hover:bg-white/10 text-slate-400 hover:text-white' : 'hover:bg-slate-200 text-slate-600 hover:text-slate-900'}`}
                     >
                         {block.locked ? <Lock size={16} /> : <Unlock size={16} />}
                     </button>
@@ -110,7 +109,7 @@ export const PitchBlockComponent: React.FC<PitchBlockProps> = ({
                             e.stopPropagation();
                             setIsExpanded(!isExpanded);
                         }}
-                        className="p-1 text-slate-400 hover:text-white transition-colors"
+                        className={`p-1 transition-colors ${isDark ? 'text-slate-400 hover:text-white' : 'text-slate-600 hover:text-slate-900'}`}
                     >
                         {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                     </button>
@@ -119,11 +118,8 @@ export const PitchBlockComponent: React.FC<PitchBlockProps> = ({
 
             {/* Expanded Content */}
             {isExpanded && (
-                <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    exit={{ opacity: 0, height: 0 }}
-                    className="p-4 space-y-4 border-t border-white/10"
+                <div
+                    className={`p-4 space-y-4 border-t ${isDark ? 'border-white/10' : 'border-slate-200'}`}
                 >
                     {/* Edit Mode */}
                     {isEditing ? (
@@ -131,7 +127,7 @@ export const PitchBlockComponent: React.FC<PitchBlockProps> = ({
                             <textarea
                                 value={editContent}
                                 onChange={e => setEditContent(e.target.value)}
-                                className="w-full bg-white/5 border border-primary/30 rounded-lg px-3 py-2 text-sm text-white focus:outline-none resize-none"
+                                className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none resize-none ${isDark ? 'bg-white/5 border-primary/30 text-white' : 'bg-slate-50 border-slate-300 text-slate-900'}`}
                                 rows={4}
                             />
                             <div className="flex gap-2">
@@ -146,7 +142,7 @@ export const PitchBlockComponent: React.FC<PitchBlockProps> = ({
                                         setEditContent(block.content);
                                         setIsEditing(false);
                                     }}
-                                    className="px-3 py-1 bg-white/10 text-slate-300 text-xs font-semibold rounded hover:bg-white/20 transition-colors"
+                                    className={`px-3 py-1 text-xs font-semibold rounded transition-colors ${isDark ? 'bg-white/10 text-slate-300 hover:bg-white/20' : 'bg-slate-200 text-slate-700 hover:bg-slate-300'}`}
                                 >
                                     Cancel
                                 </button>
@@ -155,15 +151,15 @@ export const PitchBlockComponent: React.FC<PitchBlockProps> = ({
                     ) : (
                         <>
                             {/* Content Display */}
-                            <div className="prose prose-invert max-w-none text-sm text-slate-200 bg-white/5 rounded-lg p-3">
+                            <div className={`prose max-w-none text-sm rounded-lg p-3 border ${isDark ? 'prose-invert text-slate-200 bg-white/5 border-white/10' : 'text-slate-700 bg-white border-slate-200'}`}>
                                 {block.content}
                             </div>
 
                             {/* Validation Feedback */}
                             {validation.errors.length > 0 && (
-                                <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3">
-                                    <p className="text-xs font-semibold text-red-300 mb-1">Errors:</p>
-                                    <ul className="text-xs text-red-200 space-y-1">
+                                <div className={`rounded-lg border p-3 ${isDark ? 'bg-red-500/10 border-red-500/30' : 'bg-red-50 border-red-200'}`}>
+                                    <p className={`text-xs font-semibold mb-1 ${isDark ? 'text-red-300' : 'text-red-800'}`}>Errors:</p>
+                                    <ul className={`text-xs space-y-1 ${isDark ? 'text-red-200' : 'text-red-700'}`}>
                                         {validation.errors.map((err, i) => (
                                             <li key={i}>• {err}</li>
                                         ))}
@@ -172,9 +168,9 @@ export const PitchBlockComponent: React.FC<PitchBlockProps> = ({
                             )}
 
                             {validation.warnings.length > 0 && (
-                                <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3">
-                                    <p className="text-xs font-semibold text-yellow-300 mb-1">Suggestions:</p>
-                                    <ul className="text-xs text-yellow-200 space-y-1">
+                                <div className={`rounded-lg border p-3 ${isDark ? 'bg-yellow-500/10 border-yellow-500/30' : 'bg-yellow-50 border-yellow-200'}`}>
+                                    <p className={`text-xs font-semibold mb-1 ${isDark ? 'text-yellow-300' : 'text-yellow-800'}`}>Suggestions:</p>
+                                    <ul className={`text-xs space-y-1 ${isDark ? 'text-yellow-200' : 'text-yellow-700'}`}>
                                         {validation.warnings.map((warn, i) => (
                                             <li key={i}>• {warn}</li>
                                         ))}
@@ -190,7 +186,7 @@ export const PitchBlockComponent: React.FC<PitchBlockProps> = ({
                                             key={btn.label}
                                             onClick={() => handleRegenerate(btn.instruction)}
                                             disabled={isRegenerating}
-                                            className="px-3 py-2 bg-white/10 hover:bg-white/20 text-white text-xs font-medium rounded transition-colors disabled:opacity-50 flex items-center justify-center gap-1"
+                                            className={`px-3 py-2 text-xs font-medium rounded transition-colors disabled:opacity-50 flex items-center justify-center gap-1 ${isDark ? 'bg-white/10 hover:bg-white/20 text-white' : 'bg-slate-200 hover:bg-slate-300 text-slate-900'}`}
                                         >
                                             {isRegenerating && selectedInstruction === btn.instruction ? (
                                                 <div className="animate-spin">⚡</div>
@@ -204,17 +200,17 @@ export const PitchBlockComponent: React.FC<PitchBlockProps> = ({
                             )}
 
                             {/* Action Buttons */}
-                            <div className="flex gap-2 pt-2 border-t border-white/10">
+                            <div className={`flex gap-2 pt-2 border-t ${isDark ? 'border-white/10' : 'border-slate-200'}`}>
                                 <button
                                     onClick={() => setIsEditing(true)}
                                     disabled={block.locked}
-                                    className="flex-1 px-3 py-1 bg-primary/20 hover:bg-primary/30 text-primary text-xs font-semibold rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="flex-1 px-3 py-1 bg-primary/10 hover:bg-primary/20 text-primary text-xs font-semibold rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     Edit
                                 </button>
                                 <button
                                     onClick={() => deleteBlock(block.id)}
-                                    className="flex-1 px-3 py-1 bg-red-500/20 hover:bg-red-500/30 text-red-300 text-xs font-semibold rounded transition-colors"
+                                    className={`flex-1 px-3 py-1 text-xs font-semibold rounded transition-colors ${isDark ? 'bg-red-500/20 hover:bg-red-500/30 text-red-300' : 'bg-red-100 hover:bg-red-200 text-red-700'}`}
                                 >
                                     <Trash2 size={12} className="inline mr-1" />
                                     Delete
@@ -225,12 +221,12 @@ export const PitchBlockComponent: React.FC<PitchBlockProps> = ({
 
                     {/* Version History */}
                     {block.versions.length > 0 && (
-                        <div className="text-xs text-slate-400 pt-2 border-t border-white/10">
+                        <div className={`text-xs pt-2 border-t ${isDark ? 'text-slate-400 border-white/10' : 'text-slate-600 border-slate-200'}`}>
                             {block.versions.length} prior version(s)
                         </div>
                     )}
-                </motion.div>
+                </div>
             )}
-        </motion.div>
+        </div>
     );
 };
