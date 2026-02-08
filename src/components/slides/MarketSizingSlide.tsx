@@ -28,14 +28,14 @@ export const MarketSizingSlide: React.FC<MarketSizingSlideProps> = ({
     const safeSegments = (segments || []).filter(s => s.name && s.value !== undefined).map(s => ({
         name: s.name || "Unknown Segment",
         value: s.value || 0,
-        growth: s.growth || "N/A"
+        growth: s.growth || ""
     }));
 
     if (safeSegments.length === 0) {
-        safeSegments.push({ name: "Global Market", value: 1, growth: "0%" });
+        safeSegments.push({ name: "Global Market", value: 100, growth: "5%" });
     }
 
-    const max = safeSegments[0]?.value || 1;
+    const max = Math.max(...safeSegments.map(s => s.value), 1);
 
     return (
         <ConsultingLayout
@@ -44,51 +44,39 @@ export const MarketSizingSlide: React.FC<MarketSizingSlideProps> = ({
             kicker={kicker}
             sources={sources}
         >
-            <div className="w-full h-full flex items-end justify-center gap-16 pb-8">
+            <div className="w-full h-full flex items-end justify-center gap-8 pb-8 px-8">
                 {safeSegments.map((seg, idx) => {
-                    const heightPercent = (seg.value / max) * 100;
+                    const heightPercent = (seg.value / max) * 70; // Scale to 70% of container
 
                     return (
-                        <div key={idx} className="flex flex-col items-center relative group w-40">
-                            {/* Annotation Line (CAGR) */}
-                            {seg.growth && (
-                                <div className="absolute -top-12 opacity-0 group-hover:opacity-100 transition-opacity bg-slate-900 text-white text-xs px-2 py-1 rounded">
-                                    CAGR: {seg.growth}
-                                </div>
-                            )}
-
+                        <div key={idx} className="flex flex-col items-center relative group" style={{ width: `${100 / safeSegments.length - 5}%` }}>
                             {/* Value Label */}
-                            <div className="text-2xl font-bold mb-2 text-slate-700">
-                                ${seg.value}B
+                            <div className="text-3xl font-bold mb-3 text-slate-800 flex items-baseline gap-1">
+                                {seg.value}
+                                {seg.growth && (
+                                    <span className="text-sm text-slate-500 font-normal">
+                                        CAGR {seg.growth}
+                                    </span>
+                                )}
                             </div>
 
                             {/* Bar */}
                             <motion.div
                                 initial={{ height: 0 }}
                                 animate={{ height: `${heightPercent}%` }}
-                                transition={{ duration: 1, ease: 'circOut', delay: idx * 0.2 }}
-                                className="w-full rounded-t-md shadow-lg relative overflow-hidden"
+                                transition={{ duration: 1.2, ease: 'circOut', delay: idx * 0.15 }}
+                                className="w-full rounded-t-lg shadow-xl relative overflow-hidden min-h-[60px]"
                                 style={{ backgroundColor: idx === 0 ? THEME.secondary : THEME.primary }}
                             >
-                                <div className="absolute inset-0 bg-gradient-to-tr from-black/10 to-transparent" />
+                                <div className="absolute inset-0 bg-gradient-to-tr from-black/10 to-white/10" />
                             </motion.div>
 
                             {/* X-Axis Label */}
-                            <div className="mt-4 text-center">
-                                <div className="font-bold text-slate-800 text-lg border-t-2 pt-2 border-slate-300 w-full">
+                            <div className="mt-4 text-center w-full">
+                                <div className="font-bold text-slate-800 text-base border-t-2 pt-3 border-slate-300 px-2">
                                     {seg.name}
                                 </div>
                             </div>
-
-                            {/* Connector Line (except for last) */}
-                            {idx < safeSegments.length - 1 && (
-                                <motion.div
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    transition={{ delay: 1 }}
-                                    className="absolute top-[20%] -right-10 w-4 border-t-2 border-dashed border-slate-300"
-                                />
-                            )}
                         </div>
                     );
                 })}

@@ -51,6 +51,12 @@ export function useExportDeck() {
                     case 'FinancialImpactSlide':
                         drawFinancialContent(pres, pptSlide, slideData);
                         break;
+                    case 'StrategicRoadmap':
+                        drawStrategicRoadmapContent(pres, pptSlide, slideData);
+                        break;
+                    case 'CompetitorBenchmarking':
+                        drawCompetitorBenchmarkingContent(pptSlide, slideData);
+                        break;
                     default:
                         console.warn("Unknown slide type for export:", slideData.type);
                         pptSlide.addText("Content not supported for export yet.", { x: 1, y: 3, color: "FF0000" });
@@ -265,6 +271,46 @@ function drawHarveyBallContent(_pres: any, pptSlide: any, data: SlideData) {
     pptSlide.addTable(tableRows, { x: 1, y: 2, w: 8, color: "363636" });
 }
 
+function drawCompetitorBenchmarkingContent(pptSlide: any, data: SlideData) {
+    const columns = data.props.competitors || [];
+    const rows = data.props.criteria || [];
+    const scores = data.props.scores || [];
+
+    if (columns.length === 0 || rows.length === 0) {
+        pptSlide.addText("No benchmark data available for export.", {
+            x: 1, y: 3, w: 8, h: 1, color: "94A3B8", fontSize: 16
+        });
+        return;
+    }
+
+    const tableRows = [];
+
+    const headerRow: any[] = [
+        { text: "Criteria", options: { bold: true, fill: "F1F5F9" } },
+        ...columns.map((c: string) => ({ text: c, options: { bold: true, fill: "F1F5F9", align: "center" as const } }))
+    ];
+    tableRows.push(headerRow);
+
+    rows.forEach((row: string, rIdx: number) => {
+        const cells: any[] = [
+            { text: row, options: { bold: true } }
+        ];
+
+        columns.forEach((_: any, cIdx: number) => {
+            const score = scores[rIdx]?.[cIdx] ?? 0;
+            let symbol = "○";
+            if (score === 1) symbol = "◐";
+            if (score >= 2) symbol = "●";
+
+            cells.push({ text: symbol, options: { align: "center", fontSize: 18 } });
+        });
+
+        tableRows.push(cells);
+    });
+
+    pptSlide.addTable(tableRows, { x: 1, y: 2, w: 8, color: "363636" });
+}
+
 function drawChevronContent(pres: any, pptSlide: any, data: SlideData) {
     const steps = data.props.steps || [];
     if (steps.length === 0) {
@@ -292,6 +338,44 @@ function drawChevronContent(pres: any, pptSlide: any, data: SlideData) {
         const bulletText = (step.bullets || []).join("\n• ");
         pptSlide.addText(bulletText ? "• " + bulletText : "", {
             x: xPos + 0.2, y: 3.2, w: width - 0.5, h: 0.8,
+            color: "FFFFFF", fontSize: 10
+        });
+    });
+}
+
+function drawStrategicRoadmapContent(pres: any, pptSlide: any, data: SlideData) {
+    const phases = data.props.phases || [];
+    if (phases.length === 0) {
+        pptSlide.addText("No roadmap phases available for export.", {
+            x: 1, y: 3, w: 8, h: 1, color: "94A3B8", fontSize: 16
+        });
+        return;
+    }
+
+    const width = 8 / phases.length;
+
+    phases.forEach((phase: any, i: number) => {
+        const xPos = 1 + (i * width);
+
+        pptSlide.addShape(pres.ShapeType.chevron, {
+            x: xPos, y: 2.3, w: width - 0.1, h: 2,
+            fill: { color: i % 2 === 0 ? data.theme.primary.replace('#', '') : data.theme.secondary.replace('#', '') },
+            line: { color: "FFFFFF", width: 2 }
+        });
+
+        pptSlide.addText(phase.phase || "Phase", {
+            x: xPos, y: 2.35, w: width - 0.1, h: 0.4,
+            align: "center", color: "FFFFFF", bold: true, fontSize: 14
+        });
+
+        pptSlide.addText(phase.duration || "", {
+            x: xPos, y: 2.75, w: width - 0.1, h: 0.3,
+            align: "center", color: "FFFFFF", fontSize: 10
+        });
+
+        const bulletText = (phase.milestones || []).slice(0, 3).join("\n• ");
+        pptSlide.addText(bulletText ? "• " + bulletText : "", {
+            x: xPos + 0.2, y: 3.15, w: width - 0.5, h: 0.9,
             color: "FFFFFF", fontSize: 10
         });
     });

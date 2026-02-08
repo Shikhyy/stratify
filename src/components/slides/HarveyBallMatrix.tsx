@@ -15,12 +15,12 @@ interface HarveyBallMatrixProps {
 }
 
 export const HarveyBallMatrix: React.FC<HarveyBallMatrixProps> = ({
-    actionTitle = "Strategic Options Assessment",
-    kicker = "Takeaway: Option B offers best balance of risk and reward.",
-    columns = ["Option A", "Option B", "Option C"],
-    rows = ["Market Fit", "Scalability", "Cost Efficiency"],
-    scores = [[2, 1, 0], [1, 2, 1], [0, 2, 2]],
-    section = 'Strategy',
+    actionTitle = "Strategic Assessment Matrix",
+    kicker = "Takeaway: Strong positioning across critical success factors.",
+    columns = ["Current State", "Target State"],
+    rows = ["Market Position", "Operational Efficiency", "Customer Satisfaction"],
+    scores = [[1, 2], [1, 2], [0, 2]],
+    section = 'Analysis',
     source
 }) => {
     const activeSection = section;

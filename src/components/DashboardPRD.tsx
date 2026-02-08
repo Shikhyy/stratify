@@ -1,38 +1,53 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import type { PitchBlock } from '../context/PitchContext';
 import { usePitch } from '../context/PitchContext';
 import { useDeck } from '../context/DeckContext';
 import { useExportDeck } from '../hooks/useExportDeck';
 import { CaseInputPanel } from './CaseInputPanel';
-import { PitchWorkspace } from './PitchWorkspace';
 import { IntelligencePanel } from './IntelligencePanel.tsx';
 import { ChatInterface } from './ChatInterface';
 import { useJudgeEvaluator } from '../hooks/useJudgeEvaluator';
-import { generateSlidesFromBlocks } from '../utils/slideGeneration';
 import { Download, BarChart3, Sparkles, ChevronDown, MessageSquare } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { GenerationAnimation } from './ui/GenerationAnimation';
 import { DeckPreviewModal } from './DeckPreviewModal';
+import { STRATIFY_TOOLS } from '../tambo.config';
+import { SlideReel } from './ui/SlideReel';
+import {
+    buildBlocksFromStoryline,
+    buildSlidesFromStoryline,
+    buildStorylineOutline,
+    deconstructCase,
+    generateInsights,
+    type StorylineSlide
+} from '../utils/strategyEngine';
 
 export const DashboardPRD: React.FC = () => {
-    const { 
-        blocks, 
-        caseInput, 
-        setBlocks, 
-        setJudgeScore, 
-        isGenerating, 
+    const {
+        blocks,
+        caseInput,
+        setBlocks,
+        setJudgeScore,
+        isGenerating,
         setIsGenerating,
         setCaseInput
     } = usePitch();
-    
-    const { addSlide, slides } = useDeck();
+
+    const { slides, setSlides } = useDeck();
     const { evaluatePitch } = useJudgeEvaluator();
     const { exportToPPT } = useExportDeck();
     const [judgeMode, setJudgeMode] = useState(true);
     const [selectedCase, setSelectedCase] = useState('');
-    const [sidePanel, setSidePanel] = useState<'chat' | 'intel'>('chat');
+    const [sidePanel, setSidePanel] = useState<'chat' | 'intel' | 'blocks'>('blocks');
     const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+    const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
+    const [storyline, setStoryline] = useState<StorylineSlide[]>([]);
 
-    const currentSlide = slides.length > 0 ? slides[slides.length - 1] : undefined;
+    const currentSlide = slides[currentSlideIndex];
+    const SlideComponent = useMemo(() => {
+        const toolConfig = STRATIFY_TOOLS.find(t => t.name === currentSlide?.type);
+        return toolConfig?.component || null;
+    }, [currentSlide]);
 
     const casePresets = [
         {
@@ -61,137 +76,36 @@ export const DashboardPRD: React.FC = () => {
         },
     ];
 
-    // Generate initial pitch structure from Tambo
+    // Generate pitch structure and locked storyline
     const handleGeneratePitch = useCallback(async () => {
         if (!caseInput) return;
 
         setIsGenerating(true);
 
         try {
-            // Simulate Tambo generation of pitch blocks (in production, call Tambo API)
-            const generatedBlocks: PitchBlock[] = [
-                {
-                    id: `block-${Date.now()}-1`,
-                    type: 'problem',
-                    title: 'Problem Definition',
-                    content: `Reframed Problem: ${caseInput.problemStatement}\n\nConstraints: ${caseInput.constraints}\n\nSuccess Metric: ${caseInput.targetMetric}`,
-                    locked: false,
-                    versions: [],
-                },
-                {
-                    id: `block-${Date.now()}-2`,
-                    type: 'recommendation',
-                    title: 'Our Recommendation',
-                    content: `Recommendation: Implement a three-pillar strategy focused on ${caseInput.industry} sector optimization to achieve the target metric of "${caseInput.targetMetric}" within the given constraints.`,
-                    locked: false,
-                    versions: [],
-                },
-                {
-                    id: `block-${Date.now()}-3`,
-                    type: 'insight',
-                    title: 'Core Insight',
-                    content: `The non-obvious insight: Most competitors focus on incremental improvements. The real opportunity lies in fundamentally restructuring operations to leverage emerging technologies and market shifts specific to ${caseInput.industry}.`,
-                    locked: false,
-                    versions: [],
-                },
-                {
-                    id: `block-${Date.now()}-4`,
-                    type: 'pillar',
-                    title: 'Pillar 1',
-                    content: 'Pillar 1 - Operational Excellence: Streamline processes and reduce inefficiencies by 30% through automation and process redesign.',
-                    locked: false,
-                    versions: [],
-                },
-                {
-                    id: `block-${Date.now()}-5`,
-                    type: 'pillar',
-                    title: 'Pillar 2',
-                    content: 'Pillar 2 - Market Expansion: Enter new customer segments and geographies to increase addressable market by 40%.',
-                    locked: false,
-                    versions: [],
-                },
-                {
-                    id: `block-${Date.now()}-6`,
-                    type: 'pillar',
-                    title: 'Pillar 3',
-                    content: 'Pillar 3 - Technology Integration: Implement AI-driven personalization and data analytics to improve customer experience and retention by 25%.',
-                    locked: false,
-                    versions: [],
-                },
-                {
-                    id: `block-${Date.now()}-7`,
-                    type: 'financial',
-                    title: 'Financial Impact',
-                    content: `Expected Financial Impact:
-- Revenue Growth: +$50M (from market expansion and pricing optimization)
-- Cost Savings: $15M (from operational efficiency)
-- Investment Required: $10M
-- Net Impact: $55M
-- Payback Period: 2.2 years
-Assumptions: 30% adoption rate, 15% average price increase, 25% cost reduction`,
-                    locked: false,
-                    versions: [],
-                },
-                {
-                    id: `block-${Date.now()}-8`,
-                    type: 'roadmap',
-                    title: 'Implementation Roadmap',
-                    content: `Phase 1 (Q1-Q2): Foundation - Pilot operational excellence in 3 locations, setup AI infrastructure
-Phase 2 (Q3-Q4): Scale - Roll out market expansion in 2 new geographies, full tech integration
-Phase 3 (2025): Optimize - Global rollout, continuous improvement, measure ROI`,
-                    locked: false,
-                    versions: [],
-                },
-                {
-                    id: `block-${Date.now()}-9`,
-                    type: 'risks',
-                    title: 'Risks & Mitigations',
-                    content: `Top Risks & Mitigations:
-1. Implementation Delay Risk - Mitigation: Assign dedicated PMO, weekly steering committee
-2. Technology Adoption Risk - Mitigation: Comprehensive training program, change management
-3. Competitive Response Risk - Mitigation: First-mover advantage, continuous innovation, IP protection`,
-                    locked: false,
-                    versions: [],
-                },
-                {
-                    id: `block-${Date.now()}-10`,
-                    type: 'impact',
-                    title: 'Final Impact Statement',
-                    content: `By executing this three-pillar strategy, we will transform the business from an incremental competitor into a market leader, delivering $55M in net value while positioning the company for long-term sustainable growth in the ${caseInput.industry} sector.`,
-                    locked: false,
-                    versions: [],
-                },
-            ];
+            const deconstruction = deconstructCase(caseInput);
+            const insights = generateInsights(caseInput, deconstruction);
+            const outline = buildStorylineOutline(caseInput, deconstruction, insights);
 
+            setStoryline(outline);
+            setCurrentSlideIndex(0);
+
+            const generatedBlocks: PitchBlock[] = buildBlocksFromStoryline(
+                outline,
+                caseInput,
+                deconstruction,
+                insights
+            );
             setBlocks(generatedBlocks);
 
-            // Auto-generate slides from blocks
-            const slides = generateSlidesFromBlocks(generatedBlocks, caseInput.caseTitle);
-            slides.forEach(slide => addSlide(slide.type, slide.props));
+            const deckSlides = buildSlidesFromStoryline(outline);
+            setSlides(deckSlides);
 
-            // Toast notification
             console.log('Pitch generated successfully!');
         } finally {
             setIsGenerating(false);
         }
-    }, [caseInput, setBlocks, setIsGenerating, addSlide]);
-
-    const handleRegenerate = useCallback(async (blockId: string, instruction: string) => {
-        // In production, this calls Tambo with the instruction
-        console.log(`Regenerating block ${blockId} with instruction: ${instruction}`);
-        // For now, simulate a simple regeneration
-        setBlocks(
-            blocks.map(block => {
-                if (block.id === blockId) {
-                    return {
-                        ...block,
-                        content: `[Regenerated: ${instruction}]\n\n${block.content}`,
-                    };
-                }
-                return block;
-            })
-        );
-    }, [blocks, setBlocks]);
+    }, [caseInput, setBlocks, setIsGenerating, setSlides, setStoryline, setCurrentSlideIndex]);
 
     const handleEvaluate = useCallback(async () => {
         if (blocks.length === 0) return;
@@ -303,13 +217,13 @@ Phase 3 (2025): Optimize - Global rollout, continuous improvement, measure ROI`,
                     <CaseInputPanel onGenerate={handleGeneratePitch} />
                 </div>
 
-                {/* Center Panel (50%) - Pitch Workspace */}
+                {/* Center Panel (50%) - Deck Preview */}
                 <div className="flex-1 border-r border-white/10 overflow-hidden flex flex-col">
                     {/* Header Bar */}
                     <div className="h-14 bg-slate-900/60 border-b border-white/10 px-6 flex items-center justify-between">
                         <h1 className="text-lg font-bold text-white flex items-center gap-2">
                             <Sparkles size={18} className="text-primary" />
-                            Stratify Pitch Workspace
+                            Deck Preview
                         </h1>
                         <div className="flex items-center gap-2">
                             <button
@@ -323,16 +237,89 @@ Phase 3 (2025): Optimize - Global rollout, continuous improvement, measure ROI`,
                         </div>
                     </div>
 
-                    {/* Pitch Workspace */}
-                    <div className="flex-1 overflow-hidden">
-                        <PitchWorkspace onRegenerate={handleRegenerate} />
+                    {/* Locked Storyline */}
+                    {storyline.length > 0 && (
+                        <div className="border-b border-white/10 bg-slate-900/40 px-6 py-3 overflow-x-auto">
+                            <div className="flex items-center gap-3">
+                                {storyline.map((slide, idx) => (
+                                    <div
+                                        key={slide.id}
+                                        className="min-w-[180px] rounded-lg border border-white/10 bg-white/5 px-3 py-2"
+                                    >
+                                        <div className="text-[10px] uppercase tracking-widest text-slate-400">0{idx + 1}</div>
+                                        <div className="text-xs text-white/80 mt-1 line-clamp-2">
+                                            {slide.props?.actionTitle || slide.headline}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Slide Canvas */}
+                    <div className="flex-1 flex items-center justify-center p-10 relative">
+                        <div className="absolute inset-0 opacity-[0.02] pointer-events-none"
+                            style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)', backgroundSize: '40px 40px' }}
+                        />
+
+                        {slides.length === 0 ? (
+                            <div className="text-center max-w-lg z-10">
+                                <motion.div
+                                    initial={{ opacity: 0, scale: 0.9 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    className="mb-6 flex justify-center"
+                                >
+                                    <div className="w-20 h-20 bg-gradient-to-br from-primary via-magenta to-purple rounded-3xl flex items-center justify-center shadow-2xl shadow-primary/40">
+                                        <Sparkles className="text-white w-10 h-10" />
+                                    </div>
+                                </motion.div>
+                                <h2 className="text-2xl font-bold mb-3 text-white">Generate your case deck</h2>
+                                <p className="text-slate-400 text-sm">
+                                    Fill in the case inputs and click Generate to lock the storyline.
+                                </p>
+                            </div>
+                        ) : (
+                            <motion.div
+                                key={currentSlide?.id}
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                transition={{ duration: 0.3 }}
+                                className="w-full max-w-[95%] aspect-video shadow-2xl shadow-primary/10 rounded-2xl overflow-hidden ring-1 ring-white/10 z-10"
+                            >
+                                {SlideComponent ? (
+                                    <SlideComponent {...currentSlide.props} />
+                                ) : (
+                                    <div className="flex items-center justify-center h-full text-slate-400 text-sm">
+                                        Unknown slide type.
+                                    </div>
+                                )}
+                            </motion.div>
+                        )}
                     </div>
+
+                    {/* Slide Reel */}
+                    {slides.length > 0 && (
+                        <div className="h-40 bg-slate-900/50 border-t border-white/10 relative z-20 shrink-0 flex items-center justify-center">
+                            <div className="absolute inset-x-0 -top-12 h-12 bg-gradient-to-t from-slate-900/50 to-transparent pointer-events-none" />
+                            <SlideReel currentIndex={currentSlideIndex} onSelect={setCurrentSlideIndex} />
+                        </div>
+                    )}
                 </div>
 
                 {/* Right Panel (30%) - Intelligence Layer */}
                 <div className="w-[30%] min-w-[320px] border-l border-white/10 overflow-hidden">
                     <div className="h-full flex flex-col">
                         <div className="h-12 border-b border-white/10 flex items-center gap-2 px-4 bg-slate-900/70">
+                            <button
+                                onClick={() => setSidePanel('blocks')}
+                                className={`px-3 py-1.5 text-xs font-semibold rounded-full transition-colors ${
+                                    sidePanel === 'blocks'
+                                        ? 'bg-primary/20 text-primary border border-primary/30'
+                                        : 'text-slate-300 hover:text-white'
+                                }`}
+                            >
+                                Blocks
+                            </button>
                             <button
                                 onClick={() => setSidePanel('chat')}
                                 className={`px-3 py-1.5 text-xs font-semibold rounded-full transition-colors ${
@@ -357,7 +344,28 @@ Phase 3 (2025): Optimize - Global rollout, continuous improvement, measure ROI`,
                         </div>
 
                         <div className="flex-1 overflow-hidden">
-                            {sidePanel === 'chat' ? (
+                            {sidePanel === 'blocks' ? (
+                                <div className="h-full overflow-y-auto p-4 bg-slate-900/40">
+                                    <h3 className="text-sm font-bold text-white mb-4">Pitch Blocks</h3>
+                                    {blocks.length === 0 ? (
+                                        <p className="text-slate-400 text-xs">Generate a pitch to see blocks here.</p>
+                                    ) : (
+                                        <div className="space-y-3">
+                                            {blocks.map((block, idx) => (
+                                                <div key={block.id} className="bg-white/5 border border-white/10 rounded-lg p-3">
+                                                    <div className="flex items-center justify-between mb-2">
+                                                        <span className="text-xs font-semibold text-slate-300">
+                                                            {block.title}
+                                                        </span>
+                                                        <span className="text-[10px] text-slate-500">#{idx + 1}</span>
+                                                    </div>
+                                                    <p className="text-xs text-slate-400 line-clamp-3">{block.content}</p>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            ) : sidePanel === 'chat' ? (
                                 <ChatInterface currentSlide={currentSlide} />
                             ) : (
                                 <IntelligencePanel />
@@ -370,7 +378,7 @@ Phase 3 (2025): Optimize - Global rollout, continuous improvement, measure ROI`,
             <DeckPreviewModal
                 isOpen={isPreviewOpen}
                 onClose={() => setIsPreviewOpen(false)}
-                initialIndex={slides.length > 0 ? slides.length - 1 : 0}
+                initialIndex={currentSlideIndex}
             />
         </div>
     );

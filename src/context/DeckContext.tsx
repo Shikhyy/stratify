@@ -23,6 +23,7 @@ interface DeckContextType {
     setIsGenerating: (value: boolean) => void;
     duplicateSlide: (id: string) => void;
     deleteSlide: (id: string) => void;
+    setSlides: (slides: Slide[]) => void;
 }
 
 const DeckContext = createContext<DeckContextType | undefined>(undefined);
@@ -63,8 +64,12 @@ export const DeckProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setSlides(prev => prev.filter(s => s.id !== id));
     };
 
+    const setSlidesState = (nextSlides: Slide[]) => {
+        setSlides(nextSlides);
+    };
+
     return (
-        <DeckContext.Provider value={{ slides, isGenerating, addSlide, updateSlide, setIsGenerating, duplicateSlide, deleteSlide }}>
+        <DeckContext.Provider value={{ slides, isGenerating, addSlide, updateSlide, setIsGenerating, duplicateSlide, deleteSlide, setSlides: setSlidesState }}>
             {children}
         </DeckContext.Provider>
     );
