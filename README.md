@@ -11,6 +11,32 @@ Stratify is your AI-powered strategic consultant, designed to transform abstract
 - **Interactive Visualization**: Engaging 3D elements powered by **Three.js** and dynamic charts via **Recharts** bring data to life.
 - **Presentation Mode**: Seamlessly transition from strategy building to presenting with a dedicated mode that supports slide navigation and export to PowerPoint.
 
+## 🧠 Powered by Tambo SDK
+
+Stratify is built on top of the **Tambo SDK**, leveraging its powerful generative capabilities to bridge the gap between abstract strategy and concrete visualization. The integration is deep and fundamental to the application's architecture:
+
+### 1. Generative UI Registry
+Stratify maps strict **Zod schemas** to React components using `STRATIFY_TOOLS`. This allows Tambo's AI to "understand" our UI library and generate complex, interactive slides that are guaranteed to render correctly.
+
+```typescript
+// Example: Mapping a schema to a component
+export const STRATIFY_TOOLS = [
+    {
+        name: "FinancialImpactSlide",
+        component: FinancialImpactSlide,
+        description: "Financial impact chart with base/bull/bear scenarios.",
+        propsSchema: FinancialImpactSchema, // Zod schema defining the data structure
+    },
+    // ... other tools
+];
+```
+
+### 2. Conversational State Management
+We use the `TamboProvider` and `useTamboThread` hooks to manage the entire strategic session. The SDK handles the context window, message history, and tool calling, allowing us to focus on building the best possible strategy interface.
+
+### 3. Real-time Streaming
+Tambo's streaming capabilities ensure that the UI is built in real-time as the AI "thinks", providing immediate feedback and a truly interactive consulting experience.
+
 ## 🛠️ Tech Stack
 
 - **Frontend**: [React](https://react.dev/), [Vite](https://vitejs.dev/), [TypeScript](https://www.typescriptlang.org/)
