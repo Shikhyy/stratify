@@ -1,13 +1,14 @@
 # Stratify
 
-Stratify is a next-generation strategy and presentation platform that leverages AI to transform ideas into cinematic, data-driven narratives. It combines a fluid, high-performance interface with powerful generative capabilities to redefine how strategies are built and presented.
+Stratify is your AI-powered strategic consultant, designed to transform abstract ideas into actionable, data-driven strategies and cinematic presentations. It acts as an intelligent partner, guiding you through the strategy-building process and instantly visualizing your vision with premium, high-impact design.
 
 ## ✨ Key Features
 
+- **AI Strategy Partner**: Stratify acts as a consultant, analyzing your inputs to generate comprehensive strategic frameworks and narratives tailored to your industry.
 - **Skiper UI**: A cinematic, fluid interface featuring blur-reveal typography, floating command centers, and physics-based interactions that make every action feel premium.
-- **Variability Engine**: dynamically adapts the interface with industry-specific themes and diverse layout options (Default, Minimal, Focused) to match the context of your presentation.
-- **Generative UI**: Powered by **Tambo AI**, Stratify can instantly generate complex UI components and data visualizations based on natural language prompts.
-- **Interactive Visualization**: engaging 3D elements powered by **Three.js** and dynamic charts via **Recharts** bring data to life.
+- **Variability Engine**: Dynamically adapts the interface with industry-specific themes and diverse layout options (Default, Minimal, Focused) to match the context of your presentation.
+- **Generative UI**: Powered by **Tambo AI**, Stratify instantly generates complex UI components and data visualizations based on natural language prompts.
+- **Interactive Visualization**: Engaging 3D elements powered by **Three.js** and dynamic charts via **Recharts** bring data to life.
 - **Presentation Mode**: Seamlessly transition from strategy building to presenting with a dedicated mode that supports slide navigation and export to PowerPoint.
 
 ## 🛠️ Tech Stack
