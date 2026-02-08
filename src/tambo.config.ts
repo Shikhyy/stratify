@@ -7,6 +7,10 @@ import { WaterfallBridge } from "./components/slides/WaterfallBridge";
 import { TitleSlide } from "./components/slides/TitleSlide";
 import { StrategicRoadmap } from "./components/slides/StrategicRoadmap";
 import { FinancialImpactSlide } from "./components/slides/FinancialImpactSlide";
+import { UnitEconomics } from "./components/slides/UnitEconomics";
+import { FinancialProjections } from "./components/slides/FinancialProjections";
+import { MarketWaterfall } from "./components/slides/MarketWaterfall";
+import { CompetitorBenchmarking } from "./components/slides/CompetitorBenchmarking";
 
 // Define Schemas SEPARATELY (Best practice for Tambo Registry)
 const WaterfallSchema = z.object({
@@ -98,6 +102,36 @@ const FinancialImpactSchema = z.object({
     source: z.string().optional()
 });
 
+const UnitEconomicsSchema = z.object({
+    cac: z.number().describe("Customer Acquisition Cost"),
+    ltv: z.number().describe("Lifetime Value"),
+    ratio: z.number().describe("LTV:CAC Ratio (healthy >= 3)")
+});
+
+const FinancialProjectionsSchema = z.object({
+    years: z.array(z.string()).describe("Array of year labels (e.g., ['2024', '2025', '2026'])"),
+    revenue: z.array(z.number()).describe("Revenue projections in millions for each year"),
+    ebitda: z.array(z.number()).describe("EBITDA margin percentages for each year")
+});
+
+const MarketWaterfallSchema = z.object({
+    tam: z.number().describe("Total Addressable Market in millions"),
+    sam: z.number().describe("Serviceable Available Market in millions"),
+    som: z.number().describe("Serviceable Obtainable Market in millions"),
+    currency: z.string().optional().default("USD").describe("Currency code (e.g., 'USD', 'EUR')")
+});
+
+const CompetitorBenchmarkingSchema = z.object({
+    actionTitle: z.string().optional(),
+    kicker: z.string().optional(),
+    section: z.enum(['Context', 'Analysis', 'Strategy', 'Impact']).optional(),
+    phase: z.enum(['Context', 'Analysis', 'Strategy', 'Impact']).optional(),
+    competitors: z.array(z.string()).optional().describe("Names of competitors being compared (e.g., ['Us', 'Competitor A', 'Competitor B'])"),
+    criteria: z.array(z.string()).optional().describe("Evaluation criteria (e.g., ['Price', 'Quality', 'Service'])"),
+    scores: z.array(z.array(z.number())).optional().describe("2D array of scores (0=Empty, 1=Half, 2=Full). Row x Column."),
+    source: z.string().optional()
+});
+
 // Export the Tools Array
 // CRITICAL: 'component' must be the function reference, NOT <Component />
 export const STRATIFY_TOOLS = [
@@ -142,5 +176,29 @@ export const STRATIFY_TOOLS = [
         component: FinancialImpactSlide,
         description: "Financial impact chart with base/bull/bear scenarios.",
         propsSchema: FinancialImpactSchema,
+    },
+    {
+        name: "UnitEconomics",
+        component: UnitEconomics,
+        description: "Unit economics visualization showing CAC, LTV, and LTV:CAC ratio.",
+        propsSchema: UnitEconomicsSchema,
+    },
+    {
+        name: "FinancialProjections",
+        component: FinancialProjections,
+        description: "5-year financial projections with revenue and EBITDA margin trends.",
+        propsSchema: FinancialProjectionsSchema,
+    },
+    {
+        name: "MarketWaterfall",
+        component: MarketWaterfall,
+        description: "Market opportunity waterfall from TAM to SAM to SOM.",
+        propsSchema: MarketWaterfallSchema,
+    },
+    {
+        name: "CompetitorBenchmarking",
+        component: CompetitorBenchmarking,
+        description: "Competitive benchmarking matrix with Harvey Ball scoring.",
+        propsSchema: CompetitorBenchmarkingSchema,
     }
 ];

@@ -2,25 +2,23 @@ import React, { useState } from 'react';
 import { useDeck } from '../context/DeckContext';
 import { STRATIFY_TOOLS } from '../tambo.config';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, MessageSquare, Sparkles } from 'lucide-react';
+import { Plus, MessageSquare } from 'lucide-react';
 import { ChatInterface } from './ChatInterface';
 import { SlideEditor } from './SlideEditor';
 import { SlideReel } from './ui/SlideReel';
 import { useExportDeck } from '../hooks/useExportDeck';
 import { DeckPreviewModal } from './DeckPreviewModal';
+import { GlowingEffect } from './ui/glowing-effect';
+import { StratifyLogo } from './ui/StratifyLogo';
 
 export const Dashboard: React.FC = () => {
-    const { slides, addSlide } = useDeck();
+    const { slides } = useDeck();
     const { exportToPPT } = useExportDeck();
     const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
     const [isChatOpen, setIsChatOpen] = useState(true); // Default open for "Proper AI Agent" feel
     const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
     const currentSlide = slides[currentSlideIndex];
-
-    const handleAddSlide = () => {
-        setIsChatOpen(true);
-    };
 
     // Helper to get the component for the current slide type
     const renderSlide = () => {
@@ -40,32 +38,67 @@ export const Dashboard: React.FC = () => {
 
                 {/* Header / Toolbar */}
                 <div className="h-16 bg-slate-900/80 backdrop-blur-md border-b border-white/10 p-4 flex items-center justify-between z-40">
+                    {/* Logo on Left */}
+                    <div className="flex-shrink-0">
+                        <StratifyLogo size="sm" showText={false} />
+                    </div>
+
                     {/* Export Deck Button */}
-                    <div className="flex items-center gap-3">
-                        <button
-                            onClick={() => setIsPreviewOpen(true)}
-                            disabled={slides.length === 0}
-                            className="px-4 py-2 border border-white/15 text-white/80 rounded-xl text-sm hover:bg-white/5 transition-colors disabled:opacity-50"
-                        >
-                            Preview Deck
-                        </button>
-                        <button
-                            onClick={exportToPPT}
-                            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-primary/20 to-magenta/20 hover:from-primary/30 hover:to-magenta/30 border border-primary/30 rounded-xl text-primary font-medium transition-all hover:shadow-lg hover:shadow-primary/20 group"
-                        >
-                            <div className="w-2 h-2 rounded-full bg-primary animate-pulse group-hover:scale-125 transition-transform" />
-                            <span className="text-sm">Crystalize Deck</span>
-                        </button>
+                    <div className="flex items-center gap-3 flex-1 px-4">
+                        <div className="relative group">
+                            <button
+                                onClick={() => setIsPreviewOpen(true)}
+                                disabled={slides.length === 0}
+                                className="relative px-4 py-2 border border-white/15 text-white/80 rounded-xl text-sm hover:bg-white/5 transition-colors disabled:opacity-50 overflow-hidden"
+                            >
+                                <GlowingEffect
+                                    spread={35}
+                                    glow={true}
+                                    disabled={slides.length === 0}
+                                    proximity={50}
+                                    inactiveZone={0.2}
+                                    borderWidth={1.5}
+                                />
+                                <span className="relative z-10">Preview Deck</span>
+                            </button>
+                        </div>
+                        <div className="relative group">
+                            <button
+                                onClick={exportToPPT}
+                                className="relative flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-primary/20 to-magenta/20 hover:from-primary/30 hover:to-magenta/30 border border-primary/30 rounded-xl text-primary font-medium transition-all hover:shadow-lg hover:shadow-primary/20 overflow-hidden"
+                            >
+                                <GlowingEffect
+                                    spread={40}
+                                    glow={true}
+                                    disabled={false}
+                                    proximity={60}
+                                    inactiveZone={0.15}
+                                    borderWidth={2}
+                                />
+                                <div className="relative z-10 flex items-center gap-2">
+                                    <div className="w-2 h-2 rounded-full bg-primary animate-pulse group-hover:scale-125 transition-transform" />
+                                    <span className="text-sm">Crystalize Deck</span>
+                                </div>
+                            </button>
+                        </div>
                     </div>
 
                     <div className="flex items-center gap-2">
                         {!isChatOpen && (
                             <button
                                 onClick={() => setIsChatOpen(true)}
-                                className="p-2 hover:bg-white/10 rounded-lg text-white/70 hover:text-white transition-colors"
+                                className="relative p-2 hover:bg-white/10 rounded-lg text-white/70 hover:text-white transition-colors overflow-hidden"
                                 title="Open AI Copilot"
                             >
-                                <MessageSquare size={20} />
+                                <GlowingEffect
+                                    spread={28}
+                                    glow={true}
+                                    disabled={false}
+                                    proximity={45}
+                                    inactiveZone={0.25}
+                                    borderWidth={1.5}
+                                />
+                                <MessageSquare size={20} className="relative z-10" />
                             </button>
                         )}
                     </div>
@@ -86,27 +119,65 @@ export const Dashboard: React.FC = () => {
                                 animate={{ opacity: 1, scale: 1 }}
                                 className="mb-8 flex justify-center"
                             >
-                                <div className="w-24 h-24 bg-gradient-to-br from-primary via-magenta to-purple rounded-3xl flex items-center justify-center shadow-2xl shadow-primary/40">
-                                    <Sparkles className="text-white w-12 h-12" />
-                                </div>
+                                <motion.div
+                                    whileHover={{ scale: 1.05 }}
+                                    whileTap={{ scale: 0.95 }}
+                                >
+                                    <StratifyLogo size="lg" showText={false} />
+                                </motion.div>
                             </motion.div>
 
-                            <h2 className="text-5xl font-bold mb-4 tracking-tight text-white">
-                                Stratify AI
-                            </h2>
-                            <p className="text-slate-300 text-lg mb-10 leading-relaxed">
+                            <motion.h2
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.2 }}
+                                className="font-logo text-6xl font-bold mb-2 tracking-tight bg-gradient-to-r from-amber-400 via-blue-400 to-blue-500 bg-clip-text text-transparent"
+                            >
+                                STRATIFY
+                            </motion.h2>
+                            <motion.p
+                                initial={{ opacity: 0, y: 5 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.25 }}
+                                className="text-sm text-slate-400 font-semibold tracking-widest mb-4"
+                            >
+                                AI CONSULTANT
+                            </motion.p>
+                            <motion.p
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                transition={{ delay: 0.3 }}
+                                className="text-slate-300 text-lg mb-10 leading-relaxed"
+                            >
                                 Your autonomous strategy copilot is ready.<br />
                                 <span className="text-slate-400">Describe your pitch to get started.</span>
-                            </p>
+                            </motion.p>
 
                             {!isChatOpen && (
-                                <button
-                                    onClick={() => setIsChatOpen(true)}
-                                    className="px-8 py-3 bg-gradient-to-r from-primary to-magenta text-white font-bold rounded-full hover:shadow-lg hover:shadow-primary/40 transition-all inline-flex items-center gap-2"
+                                <motion.div
+                                    initial={{ opacity: 0, scale: 0.9 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    transition={{ delay: 0.4 }}
+                                    className="relative inline-block"
                                 >
-                                    <MessageSquare size={18} />
-                                    <span>Open Copilot</span>
-                                </button>
+                                    <button
+                                        onClick={() => setIsChatOpen(true)}
+                                        className="relative px-8 py-3 bg-gradient-to-r from-primary to-magenta text-white font-bold rounded-full hover:shadow-lg hover:shadow-primary/40 transition-all inline-flex items-center gap-2 overflow-hidden group"
+                                    >
+                                        <GlowingEffect
+                                            spread={45}
+                                            glow={true}
+                                            disabled={false}
+                                            proximity={70}
+                                            inactiveZone={0.1}
+                                            borderWidth={2.5}
+                                        />
+                                        <div className="relative z-10 flex items-center gap-2">
+                                            <MessageSquare size={18} />
+                                            <span>Open Copilot</span>
+                                        </div>
+                                    </button>
+                                </motion.div>
                             )}
                         </div>
                     ) : (
@@ -118,9 +189,19 @@ export const Dashboard: React.FC = () => {
                                 animate={{ opacity: 1, scale: 1 }}
                                 exit={{ opacity: 0, scale: 1.05 }}
                                 transition={{ duration: 0.3 }}
-                                className="w-full max-w-[95%] aspect-video shadow-2xl shadow-primary/10 rounded-2xl overflow-hidden ring-1 ring-white/10 z-10"
+                                className="w-full max-w-[95%] aspect-video shadow-2xl shadow-primary/10 rounded-2xl overflow-hidden ring-1 ring-white/10 z-10 relative group"
                             >
-                                {renderSlide()}
+                                <GlowingEffect
+                                    spread={60}
+                                    glow={true}
+                                    disabled={false}
+                                    proximity={100}
+                                    inactiveZone={0.1}
+                                    borderWidth={3}
+                                />
+                                <div className="relative w-full h-full">
+                                    {renderSlide()}
+                                </div>
                             </motion.div>
                         </AnimatePresence>
                     )}
@@ -143,8 +224,16 @@ export const Dashboard: React.FC = () => {
                         animate={{ x: 0, opacity: 1 }}
                         exit={{ x: "100%", opacity: 0 }}
                         transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                        className="w-[35%] min-w-[420px] border-l border-white/10 bg-slate-900/60 backdrop-blur-xl shadow-2xl relative z-50 flex flex-col h-full overflow-hidden"
+                        className="w-[35%] min-w-[420px] border-l border-white/10 bg-slate-900/60 backdrop-blur-xl shadow-2xl relative z-50 flex flex-col h-full overflow-hidden group"
                     >
+                        <GlowingEffect
+                            spread={80}
+                            glow={true}
+                            disabled={false}
+                            proximity={120}
+                            inactiveZone={0.15}
+                            borderWidth={4}
+                        />
                         {/* Close Button */}
                         <button
                             onClick={() => setIsChatOpen(false)}

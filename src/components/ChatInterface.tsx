@@ -1,10 +1,11 @@
 
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useCallback } from 'react';
 import { useTamboThread, useTamboThreadInput } from '@tambo-ai/react';
 import { motion } from 'framer-motion';
 import { Send, Sparkles, PlusCircle } from 'lucide-react';
 import { TextStream } from './ui/TextStream';
 import { GenerationAnimation } from './ui/GenerationAnimation';
+import { GlowingEffect } from './ui/glowing-effect';
 import { STRATIFY_TOOLS } from '../tambo.config';
 import type { Slide } from '../context/DeckContext';
 import { useDeck } from '../context/DeckContext';
@@ -26,19 +27,23 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ currentSlide }) =>
         if (sectionRef.current) {
             sectionRef.current.scrollIntoView({ behavior: 'smooth' });
         }
-    }, [thread.messages]);
+    }, [thread?.messages?.length]);
 
     // Auto-execute tool calls when AI makes them
     useEffect(() => {
+        if (!thread?.messages || thread.messages.length === 0) return;
+        
         const lastMessage = thread.messages[thread.messages.length - 1];
         if (lastMessage?.role === 'assistant' && lastMessage?.tool_calls?.length > 0) {
             // Check if there are slide-generating tool calls
             const hasSlideTools = lastMessage.tool_calls.some((toolCall: any) => {
                 try {
-                    const toolName = toolCall.function.name;
+                    const toolName = toolCall?.function?.name;
+                    if (!toolName) return false;
                     const toolConfig = STRATIFY_TOOLS.find(t => t.name === toolName);
                     return toolConfig && toolConfig.component;
                 } catch (e) {
+                    console.error('Tool validation error:', e);
                     return false;
                 }
             });
@@ -47,34 +52,63 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ currentSlide }) =>
                 setIsGenerating(true);
                 // Add a small delay for the animation to show
                 setTimeout(() => {
-                    lastMessage.tool_calls.forEach((toolCall: any) => {
-                        handleToolCall(toolCall);
+                    lastMessage.tool_calls?.forEach((toolCall: any) => {
+                        try {
+                            handleToolCall(toolCall);
+                        } catch (error) {
+                            console.error('Error handling tool call:', error);
+                        }
                     });
                     setIsGenerating(false);
                 }, 2000);
             } else {
-                lastMessage.tool_calls.forEach((toolCall: any) => {
-                    handleToolCall(toolCall);
+                lastMessage.tool_calls?.forEach((toolCall: any) => {
+                    try {
+                        handleToolCall(toolCall);
+                    } catch (error) {
+                        console.error('Error handling tool call:', error);
+                    }
                 });
             }
         }
-    }, [thread.messages]);
+    }, [thread?.messages?.length]);
 
     const handleKeyDown = (e: React.KeyboardEvent) => {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
-            submit(value);
+            if (value.trim()) {
+                submit(value);
+            }
         }
     };
 
-    const handleToolCall = (toolCall: any) => {
+    const handleSubmit = useCallback(() => {
+        if (!value.trim() || isPending) return;
+        submit(value);
+    }, [value, isPending, submit]);
+
+    const handleToolCall = useCallback((toolCall: any) => {
         try {
+            if (!toolCall?.function?.name) {
+                console.warn('Invalid tool call format');
+                return;
+            }
+
             const toolName = toolCall.function.name;
-            const args = JSON.parse(toolCall.function.arguments);
+            let args = {};
+            
+            try {
+                args = typeof toolCall.function.arguments === 'string' 
+                    ? JSON.parse(toolCall.function.arguments) 
+                    : toolCall.function.arguments;
+            } catch (parseError) {
+                console.error('Failed to parse tool arguments:', parseError);
+                args = {};
+            }
 
             if (toolName === 'UpdateSlide') {
                 if (currentSlide) {
-                    updateSlide(currentSlide.id, args.updates || args);
+                    updateSlide(currentSlide.id, (args as any).updates || args);
                 }
                 return;
             }
@@ -87,12 +121,14 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ currentSlide }) =>
             // Only add actual slides to the deck
             const isSlideTool = STRATIFY_TOOLS.some(t => t.name === toolName && !!t.component && t.name !== 'UpdateSlide' && t.name !== 'SetTheme');
             if (isSlideTool) {
-                addSlide(toolName, args);
+                addSlide(toolName as any, args);
+            } else {
+                console.debug(`Tool '${toolName}' is not a slide tool, skipping`);
             }
         } catch (e) {
-            console.error("Failed to execute tool:", e);
+            console.error("Failed to execute tool:", e, toolCall);
         }
-    };
+    }, [currentSlide, updateSlide, addSlide]);
 
     // Helper to extract text from message content
     const getMessageText = (content: any): string => {
@@ -123,74 +159,94 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ currentSlide }) =>
             {/* Messages */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
                 <ErrorBoundary name="ChatMessages">
-                    {thread.messages.map((msg: any, i: number) => {
-                        const isUser = msg.role === 'user';
-                        const messageText = getMessageText(msg.content);
+                    {!thread?.messages || thread.messages.length === 0 ? (
+                        <div className={`flex flex-col items-center justify-center h-full text-center`}>
+                            <Sparkles size={40} className={`mb-3 ${isDark ? 'text-slate-600' : 'text-slate-400'}`} />
+                            <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>Start chatting to generate slides!</p>
+                            <p className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-500'} mt-2 max-w-xs`}>
+                                Try asking: "Create a market sizing slide with these segments..."
+                            </p>
+                        </div>
+                    ) : (
+                        thread?.messages?.map((msg: any, i: number) => {
+                            const isUser = msg?.role === 'user';
+                            const messageText = getMessageText(msg?.content);
 
-                        // Skip displaying raw tool results
-                        if (msg.role === 'tool') return null;
+                            // Skip displaying raw tool results
+                            if (msg?.role === 'tool') return null;
 
-                        return (
-                            <motion.div
-                                key={i}
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                className="flex flex-col gap-4"
-                            >
-                                {/* Text Message */}
-                                {messageText && (
-                                    <div className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}>
-                                        <div
-                                            className={`max-w-[80%] px-4 py-2.5 rounded-xl text-sm leading-relaxed ${
-                                                isUser
-                                                ? 'bg-gradient-to-r from-primary to-purple text-white rounded-br-none shadow-lg shadow-primary/20 font-medium'
-                                                : 'bg-white/10 text-slate-100 rounded-bl-none'
-                                                }`}
-                                        >
-                                            {isUser ? (
-                                                messageText
-                                            ) : (
-                                                <ErrorBoundary name="TextStream">
-                                                    <TextStream text={messageText} />
-                                                </ErrorBoundary>
-                                            )}
+                            return (
+                                <motion.div
+                                    key={i}
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    className="flex flex-col gap-4"
+                                >
+                                    {/* Text Message */}
+                                    {messageText && (
+                                        <div className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}>
+                                            <div
+                                                className={`max-w-[80%] px-4 py-2.5 rounded-xl text-sm leading-relaxed ${
+                                                    isUser
+                                                    ? 'bg-gradient-to-r from-primary to-purple text-white rounded-br-none shadow-lg shadow-primary/20 font-medium'
+                                                    : 'bg-white/10 text-slate-100 rounded-bl-none'
+                                                    }`}
+                                            >
+                                                {isUser ? (
+                                                    messageText
+                                                ) : (
+                                                    <ErrorBoundary name="TextStream">
+                                                        <TextStream text={messageText} />
+                                                    </ErrorBoundary>
+                                                )}
+                                            </div>
                                         </div>
-                                    </div>
-                                )}
+                                    )}
 
-                                {/* Rendered Component from Tambo */}
-                                {msg.renderedComponent && (
-                                    <ErrorBoundary name="RenderedComponent">
-                                        <motion.div
-                                            initial={{ opacity: 0, scale: 0.95 }}
-                                            animate={{ opacity: 1, scale: 1 }}
-                                            className="bg-slate-900 border border-white/10 rounded-xl overflow-hidden"
-                                        >
-                                            <div className="p-2 bg-white/5 text-xs text-slate-400 border-b border-white/5 flex justify-between items-center">
-                                                <span>✨ GENERATED SLIDE</span>
-                                                <button
-                                                    onClick={() => {
-                                                        // Extract component info and add to deck
-                                                        if (msg.tool_calls && msg.tool_calls[0]) {
-                                                            handleToolCall(msg.tool_calls[0]);
-                                                        }
-                                                    }}
-                                                    className="flex items-center gap-1 text-primary hover:text-white transition-colors"
-                                                >
-                                                    <PlusCircle size={14} />
-                                                    Add to Deck
-                                                </button>
-                                            </div>
-                                            <div className="aspect-video w-full relative">
-                                                {/* Tambo's rendered component */}
-                                                {msg.renderedComponent}
-                                            </div>
-                                        </motion.div>
-                                    </ErrorBoundary>
-                                )}
-                            </motion.div>
-                        );
-                    })}
+                                    {/* Rendered Component from Tambo */}
+                                    {msg?.renderedComponent && (
+                                        <ErrorBoundary name="RenderedComponent">
+                                            <motion.div
+                                                initial={{ opacity: 0, scale: 0.95 }}
+                                                animate={{ opacity: 1, scale: 1 }}
+                                                className="bg-slate-900 border border-white/10 rounded-xl overflow-hidden"
+                                            >
+                                                <div className="p-2 bg-white/5 text-xs text-slate-400 border-b border-white/5 flex justify-between items-center">
+                                                    <span>✨ GENERATED SLIDE</span>
+                                                    <button
+                                                        onClick={() => {
+                                                            // Extract component info and add to deck
+                                                            if (msg?.tool_calls?.[0]) {
+                                                                handleToolCall(msg.tool_calls[0]);
+                                                            }
+                                                        }}
+                                                        className="relative flex items-center gap-1 text-primary hover:text-white transition-colors overflow-hidden rounded-lg px-2 py-1"
+                                                    >
+                                                        <GlowingEffect
+                                                            spread={22}
+                                                            glow={true}
+                                                            disabled={false}
+                                                            proximity={40}
+                                                            inactiveZone={0.3}
+                                                            borderWidth={1}
+                                                        />
+                                                        <span className="relative z-10 flex items-center gap-1">
+                                                            <PlusCircle size={14} />
+                                                            Add to Deck
+                                                        </span>
+                                                    </button>
+                                                </div>
+                                                <div className="aspect-video w-full relative">
+                                                    {/* Tambo's rendered component */}
+                                                    {msg.renderedComponent}
+                                                </div>
+                                            </motion.div>
+                                        </ErrorBoundary>
+                                    )}
+                                </motion.div>
+                            );
+                        })
+                    )}
                 </ErrorBoundary>
                 {isPending && (
                     <motion.div
@@ -222,11 +278,19 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ currentSlide }) =>
                         }`}
                     />
                     <button
-                        onClick={() => submit(value)}
+                        onClick={handleSubmit}
                         disabled={!value.trim() || isPending}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-gradient-to-r from-primary to-magenta text-white rounded-lg hover:shadow-lg hover:shadow-primary/30 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                        className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-gradient-to-r from-primary to-magenta text-white rounded-lg hover:shadow-lg hover:shadow-primary/30 disabled:opacity-40 disabled:cursor-not-allowed transition-all overflow-hidden"
                     >
-                        <Send size={16} />
+                        <GlowingEffect
+                            spread={24}
+                            glow={true}
+                            disabled={false}
+                            proximity={50}
+                            inactiveZone={0.25}
+                            borderWidth={1.5}
+                        />
+                        <Send size={16} className="relative z-10" />
                     </button>
                 </div>
             </div>

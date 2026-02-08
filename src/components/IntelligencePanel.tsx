@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Zap, BarChart3, AlertCircle, BookOpen, History } from 'lucide-react';
 import { usePitch } from '../context/PitchContext';
 import { useTheme } from '../context/ThemeContext';
+import { GlowingEffect } from './ui/glowing-effect';
 
 export const IntelligencePanel: React.FC = () => {
     const { isDark } = useTheme();
@@ -78,33 +79,57 @@ export const IntelligencePanel: React.FC = () => {
             <div className={`flex gap-2 mb-6 border-b ${isDark ? 'border-white/10' : 'border-slate-200'}`}>
                 <button
                     onClick={() => setActiveTab('judge')}
-                    className={`px-3 py-2 text-sm font-medium transition-colors ${
+                    className={`relative px-3 py-2 text-sm font-medium transition-colors overflow-hidden ${
                         activeTab === 'judge'
                             ? 'text-primary border-b-2 border-primary'
                             : isDark ? 'text-slate-400 hover:text-white' : 'text-slate-600 hover:text-slate-900'
                     }`}
                 >
-                    Scores
+                    <GlowingEffect
+                        spread={20}
+                        glow={true}
+                        disabled={false}
+                        proximity={32}
+                        inactiveZone={0.35}
+                        borderWidth={1}
+                    />
+                    <span className="relative z-10">Scores</span>
                 </button>
                 <button
                     onClick={() => setActiveTab('insights')}
-                    className={`px-3 py-2 text-sm font-medium transition-colors ${
+                    className={`relative px-3 py-2 text-sm font-medium transition-colors overflow-hidden ${
                         activeTab === 'insights'
                             ? 'text-primary border-b-2 border-primary'
                             : isDark ? 'text-slate-400 hover:text-white' : 'text-slate-600 hover:text-slate-900'
                     }`}
                 >
-                    Insight Breakdown
+                    <GlowingEffect
+                        spread={20}
+                        glow={true}
+                        disabled={false}
+                        proximity={32}
+                        inactiveZone={0.35}
+                        borderWidth={1}
+                    />
+                    <span className="relative z-10">Insight Breakdown</span>
                 </button>
                 <button
                     onClick={() => setActiveTab('versions')}
-                    className={`px-3 py-2 text-sm font-medium transition-colors ${
+                    className={`relative px-3 py-2 text-sm font-medium transition-colors overflow-hidden ${
                         activeTab === 'versions'
                             ? 'text-primary border-b-2 border-primary'
                             : isDark ? 'text-slate-400 hover:text-white' : 'text-slate-600 hover:text-slate-900'
                     }`}
                 >
-                    Versions
+                    <GlowingEffect
+                        spread={20}
+                        glow={true}
+                        disabled={false}
+                        proximity={32}
+                        inactiveZone={0.35}
+                        borderWidth={1}
+                    />
+                    <span className="relative z-10">Versions</span>
                 </button>
             </div>
 
@@ -180,7 +205,7 @@ export const IntelligencePanel: React.FC = () => {
                             <ul className={`space-y-2 text-sm ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>
                                 {insightBreakdown.map((insight, idx) => (
                                     <li key={idx} className="flex gap-2">
-                                        <span className="text-[#35D4FF]">0{idx + 1}</span>
+                                        <span className="text-[#d79f1e]">0{idx + 1}</span>
                                         <span>{insight}</span>
                                     </li>
                                 ))}

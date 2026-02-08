@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { ConsultingLayout, type Section } from '../layout/ConsultingLayout';
-import { THEME } from '../../context/DeckContext';
+
 import { useTheme } from '../../context/ThemeContext';
 
 interface MarketSizingSlideProps {
@@ -46,38 +46,72 @@ export const MarketSizingSlide: React.FC<MarketSizingSlideProps> = ({
             kicker={kicker}
             sources={sources}
         >
-            <div className="w-full h-full flex items-end justify-center gap-8 pb-8 px-8">
+            <div className="w-full h-full flex items-end justify-center gap-12 pb-12 px-10">
                 {safeSegments.map((seg, idx) => {
-                    const heightPercent = (seg.value / max) * 70; // Scale to 70% of container
+                    const heightPercent = (seg.value / max) * 70;
+                    const colors = ['#3b82f6', '#2563eb', '#1d4ed8'];
 
                     return (
-                        <div key={idx} className="flex flex-col items-center relative group" style={{ width: `${100 / safeSegments.length - 5}%` }}>
-                            {/* Value Label */}
-                            <div className={`text-2xl font-semibold mb-3 flex items-baseline gap-2 ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>
+                        <motion.div 
+                            key={idx}
+                            initial={{ opacity: 0, y: 30 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.6, delay: idx * 0.15 }}
+                            className="flex flex-col items-center relative group" 
+                            style={{ width: `${100 / safeSegments.length - 8}%` }}
+                        >
+                            {/* Value Display */}
+                            <div 
+                                className={`text-2xl font-semibold mb-6 ${
+                                    isDark ? 'text-slate-100' : 'text-slate-900'
+                                }`}
+                            >
                                 ${seg.value}B
-                                {seg.growth && (
-                                    <span className={`text-xs font-medium ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-                                        CAGR {seg.growth}
-                                    </span>
-                                )}
                             </div>
-
-                            {/* Bar */}
-                            <motion.div
-                                initial={{ height: 0 }}
-                                animate={{ height: `${heightPercent}%` }}
-                                transition={{ duration: 0.9, ease: 'easeOut', delay: idx * 0.1 }}
-                                className="w-full rounded-t-md relative overflow-hidden min-h-[60px]"
-                                style={{ backgroundColor: idx === 0 ? THEME.primary : isDark ? '#475569' : '#CBD5E1' }}
-                            />
-
-                            {/* X-Axis Label */}
-                            <div className="mt-4 text-center w-full">
-                                <div className={`font-semibold text-sm border-t pt-3 px-2 ${isDark ? 'text-slate-300 border-white/20' : 'text-slate-700 border-slate-300'}`}>
-                                    {seg.name}
+                            
+                            {seg.growth && (
+                                <div 
+                                    className={`text-xs font-semibold px-3 py-1 rounded-md mb-4 ${
+                                        isDark 
+                                            ? 'bg-slate-700/40 text-slate-300' 
+                                            : 'bg-slate-100 text-slate-600'
+                                    }`}
+                                >
+                                    {seg.growth} growth
                                 </div>
+                            )}
+
+                            {/* Bar Container */}
+                            <div className="relative w-full flex-1 flex items-end justify-center max-h-[65%]">
+                                {/* Main Bar */}
+                                <motion.div
+                                    initial={{ height: 0, opacity: 0 }}
+                                    animate={{ height: `${heightPercent}%`, opacity: 1 }}
+                                    transition={{ duration: 0.8, delay: idx * 0.15 }}
+                                    whileHover={{ scale: 1.04, transition: { duration: 0.2 } }}
+                                    className={`w-full rounded-t-lg relative overflow-hidden min-h-[60px] transition-shadow duration-300 ${
+                                        isDark
+                                            ? 'hover:shadow-lg hover:shadow-blue-500/30'
+                                            : 'hover:shadow-md hover:shadow-blue-400/30'
+                                    }`}
+                                    style={{ 
+                                        background: colors[idx % 3],
+                                    }}
+                                />
                             </div>
-                        </div>
+
+                            {/* Label */}
+                            <motion.div 
+                                initial={{ opacity: 0, y: 5 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.6, delay: idx * 0.15 + 0.2 }}
+                                className={`mt-4 text-sm font-medium ${
+                                    isDark ? 'text-slate-300' : 'text-slate-600'
+                                }`}
+                            >
+                                {seg.name}
+                            </motion.div>
+                        </motion.div>
                     );
                 })}
             </div>

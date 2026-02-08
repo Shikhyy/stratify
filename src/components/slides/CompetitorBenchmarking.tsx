@@ -1,5 +1,4 @@
 import React from 'react';
-import { THEME } from '../../context/DeckContext';
 import { ConsultingLayout, type Section } from '../layout/ConsultingLayout';
 import { clsx } from 'clsx';
 import { useTheme } from '../../context/ThemeContext';
@@ -34,9 +33,9 @@ export const CompetitorBenchmarking: React.FC<CompetitorBenchmarkingProps> = ({
     const HarveyBall = ({ score }: { score: number }) => {
         // 0 = Empty, 1 = Half, 2 = Full
         return (
-            <div className={`w-6 h-6 rounded-full border-2 relative overflow-hidden mx-auto ${isDark ? 'border-white/30 bg-slate-800' : 'border-slate-300 bg-white'}`}>
+            <div className={`w-6 h-6 rounded-full border-2 relative overflow-hidden mx-auto ${isDark ? 'border-slate-600 bg-slate-700/30' : 'border-slate-300 bg-slate-50'}`}>
                 <div
-                    style={{ backgroundColor: THEME.primary }}
+                    style={{ backgroundColor: '#3b82f6' }}
                     className={clsx(
                         "absolute inset-0 origin-left",
                         score === 0 && "hidden",

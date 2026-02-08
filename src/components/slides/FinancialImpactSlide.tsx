@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { THEME } from '../../context/DeckContext';
+
 import { ConsultingLayout, type Section } from '../layout/ConsultingLayout';
 import { useTheme } from '../../context/ThemeContext';
 
@@ -43,30 +43,62 @@ export const FinancialImpactSlide: React.FC<FinancialImpactSlideProps> = ({
                 </div>
 
                 {/* Chart Area */}
-                <div className={`flex-1 flex items-end justify-around pb-6 px-8 border-b ${isDark ? 'border-white/10' : 'border-slate-200'}`}>
+                <div className={`flex-1 flex items-end justify-around pb-6 px-8 border-b-2 ${isDark ? 'border-white/20' : 'border-slate-300'}`}>
                     {data.map((item, idx) => {
-                        const heightPercent = (item.value / max) * 100;
-                        const barColor = item.type === 'Base'
-                            ? THEME.primary
+                        const heightPercent = (item.value / max) * 85;
+                        const barGradient = item.type === 'Base'
+                            ? 'linear-gradient(135deg, #d79f1e 0%, #f0b429 100%)'
                             : item.type === 'Bull'
-                                ? '#0EA5A4'
-                                : '#E11D48';
+                                ? 'linear-gradient(135deg, #10b981 0%, #34d399 100%)'
+                                : 'linear-gradient(135deg, #ef4444 0%, #f87171 100%)';
+                        const shadowColor = item.type === 'Base'
+                            ? 'rgba(215, 159, 30, 0.5)'
+                            : item.type === 'Bull'
+                                ? 'rgba(16, 185, 129, 0.5)'
+                                : 'rgba(239, 68, 68, 0.5)';
 
                         return (
-                            <div key={idx} className="flex flex-col items-center gap-2 w-24">
-                                <div className={`font-semibold text-lg ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>${item.value}M</div>
+                            <motion.div 
+                                key={idx} 
+                                className="flex flex-col items-center gap-2 w-24"
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.5, delay: idx * 0.1 }}
+                            >
+                                <motion.div 
+                                    initial={{ scale: 0 }}
+                                    animate={{ scale: 1 }}
+                                    transition={{ delay: idx * 0.1 + 0.3, type: "spring" }}
+                                    className={`font-bold text-xl px-3 py-1 rounded-lg shadow-md ${isDark ? 'text-slate-100 bg-slate-800/60' : 'text-slate-900 bg-white'}`}
+                                    style={{ boxShadow: `0 4px 12px ${shadowColor}` }}
+                                >
+                                    ${item.value}M
+                                </motion.div>
 
                                 <motion.div
-                                    initial={{ height: 0 }}
-                                    animate={{ height: `${heightPercent}%` }}
-                                    transition={{ duration: 0.8, delay: idx * 0.1 }}
-                                    className="w-full rounded-t-sm"
-                                    style={{ backgroundColor: barColor }}
-                                />
+                                    initial={{ height: 0, opacity: 0 }}
+                                    animate={{ height: `${heightPercent}%`, opacity: 1 }}
+                                    transition={{ duration: 1, ease: [0.16, 1, 0.3, 1], delay: idx * 0.15 }}
+                                    whileHover={{ scale: 1.05, transition: { duration: 0.2 } }}
+                                    className="w-full rounded-t-xl relative overflow-hidden shadow-2xl min-h-[40px]"
+                                    style={{ 
+                                        background: barGradient,
+                                        boxShadow: `0 -8px 24px ${shadowColor}`
+                                    }}
+                                >
+                                    {/* Shine Effect */}
+                                    <div className="absolute inset-0 bg-gradient-to-b from-white/40 via-transparent to-transparent" />
+                                    {/* Pattern Overlay */}
+                                    <div className="absolute inset-0" style={{ 
+                                        backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255,255,255,0.05) 10px, rgba(255,255,255,0.05) 20px)'
+                                    }} />
+                                </motion.div>
 
-                                <div className={`text-xs font-semibold mt-2 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{item.year}</div>
-                                <div className={`text-[10px] uppercase tracking-wider font-semibold ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{item.type}</div>
-                            </div>
+                                <div className={`text-xs font-bold mt-2 ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>{item.year}</div>
+                                <div className={`text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded ${item.type === 'Bull' ? 'bg-emerald-500/20 text-emerald-400' : item.type === 'Bear' ? 'bg-red-500/20 text-red-400' : 'bg-amber-500/20 text-amber-400'}`}>
+                                    {item.type}
+                                </div>
+                            </motion.div>
                         );
                     })}
                 </div>

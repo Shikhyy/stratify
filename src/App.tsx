@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { DeckProvider } from './context/DeckContext';
 import { PitchProvider } from './context/PitchContext';
 import { DashboardPRD } from './components/DashboardPRD';
@@ -7,8 +7,16 @@ import { LandingPage } from './components/LandingPage';
 import { AnimatePresence, motion } from 'framer-motion';
 
 function App() {
-  const [hasStarted, setHasStarted] = useState(false);
-  const [mode, setMode] = useState<'prd' | 'classic'>('prd'); // Default to new PRD mode
+  const [hasStarted, setHasStarted] = useState(() => window.location.pathname === '/dashboard');
+  const [mode] = useState<'prd' | 'classic'>('prd'); // Default to new PRD mode
+
+  useEffect(() => {
+    const handlePopState = () => {
+      setHasStarted(window.location.pathname === '/dashboard');
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
 
   return (
     <DeckProvider>
@@ -20,7 +28,10 @@ function App() {
               exit={{ opacity: 0, y: -100 }}
               transition={{ duration: 0.8, ease: "easeInOut" }}
             >
-              <LandingPage onStart={() => setHasStarted(true)} />
+              <LandingPage onStart={() => {
+                window.history.pushState({}, '', '/dashboard');
+                setHasStarted(true);
+              }} />
             </motion.div>
           ) : (
             <motion.div

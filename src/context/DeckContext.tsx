@@ -3,16 +3,16 @@ import React, { createContext, useContext, useState, type ReactNode } from 'reac
 // Define Slide interface
 export interface Slide {
     id: string;
-    type: 'TitleSlide' | 'MarketSizingSlide' | 'CompetitorBenchmarking' | 'StrategicRoadmap' | 'FinancialImpactSlide' | 'WaterfallBridge' | 'HarveyBallMatrix' | 'ChevronProcess';
+    type: 'TitleSlide' | 'MarketSizingSlide' | 'CompetitorBenchmarking' | 'StrategicRoadmap' | 'FinancialImpactSlide' | 'WaterfallBridge' | 'HarveyBallMatrix' | 'ChevronProcess' | 'UnitEconomics' | 'FinancialProjections' | 'MarketWaterfall';
     props: any;
 }
 
 // CBS-style neutral palette with a single accent
 export const THEME = {
-    primary: '#2563EB',
-    secondary: '#0EA5A4',
-    magenta: '#2563EB',
-    purple: '#0EA5A4',
+    primary: '#d79f1e',
+    secondary: '#4c7894',
+    magenta: '#dd7bbb',
+    purple: '#5a922c',
 };
 
 interface DeckContextType {

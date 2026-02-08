@@ -1,6 +1,6 @@
 import React from 'react';
+import { motion } from 'framer-motion';
 import { ConsultingLayout, type Section } from '../layout/ConsultingLayout';
-import { clsx } from 'clsx';
 import { useTheme } from '../../context/ThemeContext';
 
 interface WaterfallStep {
@@ -64,55 +64,87 @@ export const WaterfallBridge: React.FC<WaterfallBridgeProps> = ({
             kicker={kicker}
             sources={sources}
         >
-            <div className="w-full h-full flex items-center justify-center px-8 pb-16 pt-8">
+            <div className="w-full h-full flex items-center justify-center px-10 pb-16 pt-8">
                 <div className="w-full h-full flex items-end justify-center gap-6">
                     {chartData.map((d, idx) => {
-                        const barBottom = (Math.min(d.start, d.end) / maxVal) * 60 + 10; // Scale to 60% of height, offset by 10%
+                        const barBottom = (Math.min(d.start, d.end) / maxVal) * 60 + 10;
                         const barHeight = (Math.abs(d.end - d.start) / maxVal) * 60;
 
-                        let barColor = 'bg-slate-500';
-                        if (d.type === 'plus') barColor = 'bg-emerald-600';
-                        if (d.type === 'minus') barColor = 'bg-rose-600';
-                        if (d.type === 'total') barColor = 'bg-slate-700';
+                        let barColor = '#64748b';
+                        
+                        if (d.type === 'plus') {
+                            barColor = '#10b981';
+                        }
+                        if (d.type === 'minus') {
+                            barColor = '#ef4444';
+                        }
+                        if (d.type === 'total') {
+                            barColor = '#2563eb';
+                        }
 
                         const isTotal = d.type === 'total' || d.type === 'subtotal';
                         const displayValue = isTotal ? formatValue(d.end) : `${d.change > 0 ? '+' : ''}${formatValue(d.change)}`;
 
                         return (
-                            <div key={idx} className="relative flex-1 h-full flex flex-col justify-end items-center max-w-[140px]">
+                            <motion.div 
+                                key={idx} 
+                                initial={{ opacity: 0, y: 30 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: idx * 0.12, duration: 0.5 }}
+                                className="relative flex-1 h-full flex flex-col justify-end items-center max-w-[120px] group"
+                            >
                                 {/* Connector Line (Bridge) */}
                                 {idx > 0 && d.type !== 'total' && d.type !== 'subtotal' && (
-                                    <div
-                                        className={`absolute left-[-50%] w-[100%] border-t border-dashed ${isDark ? 'border-white/20' : 'border-slate-300'}`}
-                                        style={{ bottom: `${(chartData[idx - 1].end / maxVal) * 60 + 10}%` }}
-                                    />
+                                    <motion.svg 
+                                        className="absolute left-[-50%] w-[100%]"
+                                        style={{ bottom: `${(chartData[idx - 1].end / maxVal) * 60 + 10}%`, height: '2px' }}
+                                        initial={{ pathLength: 0 }}
+                                        animate={{ pathLength: 1 }}
+                                        transition={{ delay: idx * 0.15 + 0.3, duration: 0.6 }}
+                                    >
+                                        <line x1="0" y1="50%" x2="100%" y2="50%" stroke={isDark ? '#ffffff33' : '#00000020'} strokeWidth="2" strokeDasharray="5,5" />
+                                    </motion.svg>
                                 )}
 
                                 {/* Value Label Above Bar */}
-                                <div className={`text-sm font-semibold mb-2 ${isDark ? 'text-slate-200' : 'text-slate-700'}`}>
+                                <motion.div 
+                                    initial={{ opacity: 0, y: -10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: idx * 0.15 + 0.2 }}
+                                    className={`text-sm font-bold mb-3 ${isDark ? 'text-slate-100' : 'text-slate-800'}`}
+                                >
                                     {displayValue}
-                                </div>
+                                </motion.div>
 
                                 {/* Bar Container */}
                                 <div className="relative w-full" style={{ height: '60%' }}>
                                     {/* Bar */}
-                                    <div
-                                        className={clsx("w-full rounded-t-sm relative", barColor)}
+                                    <motion.div
+                                        initial={{ height: 0 }}
+                                        animate={{ height: `${barHeight}%` }}
+                                        transition={{ delay: idx * 0.12 + 0.1, duration: 0.6 }}
+                                        whileHover={{ scale: 1.05, transition: { duration: 0.2 } }}
+                                        className="w-full rounded-t-md relative overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300"
                                         style={{
                                             position: 'absolute',
                                             bottom: `${barBottom}%`,
-                                            height: `${barHeight}%`
+                                            background: barColor,
                                         }}
                                     />
                                 </div>
 
                                 {/* X-Axis Label */}
-                                <div className="mt-4 text-center w-full">
-                                    <div className={`text-[11px] font-semibold leading-tight px-1 ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
+                                <motion.div 
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    transition={{ delay: idx * 0.15 + 0.4 }}
+                                    className="mt-4 text-center w-full"
+                                >
+                                    <div className={`text-xs font-bold uppercase tracking-wider leading-tight px-1 ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
                                         {d.label}
                                     </div>
-                                </div>
-                            </div>
+                                </motion.div>
+                            </motion.div>
                         );
                     })}
                 </div>

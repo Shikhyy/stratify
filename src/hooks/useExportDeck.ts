@@ -57,6 +57,15 @@ export function useExportDeck() {
                     case 'CompetitorBenchmarking':
                         drawCompetitorBenchmarkingContent(pptSlide, slideData);
                         break;
+                    case 'UnitEconomics':
+                        drawUnitEconomicsContent(pres, pptSlide, slideData);
+                        break;
+                    case 'FinancialProjections':
+                        drawFinancialProjectionsContent(pres, pptSlide, slideData);
+                        break;
+                    case 'MarketWaterfall':
+                        drawMarketWaterfallContent(pres, pptSlide, slideData);
+                        break;
                     default:
                         console.warn("Unknown slide type for export:", slideData.type);
                         pptSlide.addText("Content not supported for export yet.", { x: 1, y: 3, color: "FF0000" });
@@ -82,7 +91,7 @@ export function useExportDeck() {
 
 function drawConsultingLayout(pres: any, pptSlide: any, data: SlideData) {
     const { actionTitle, kicker, section, phase } = data.props;
-    const { primary } = data.theme;
+    const { primary, secondary } = data.theme;
 
     const activeSection = phase || section || 'Analysis';
     const sections = ['Context', 'Analysis', 'Strategy', 'Impact'];
@@ -198,11 +207,6 @@ function drawMarketContent(pres: any, pptSlide: any, data: SlideData) {
 }
 
 function drawWaterfallContent(pres: any, pptSlide: any, data: SlideData) {
-    // Waterfall is tricky in basic PPTX, approximating with bar chart or just listing data for now
-    // A true waterfall chart type exists in newer PPT versions, let's try 'bar' with logic or native 'waterfall' if supported (requires newer library version/PPT).
-    // PptxGenJS 3.12+ supports 'waterfall' chart type? No, usually done via 'bar' with hidden stack.
-    // For simplicity/robustness, we'll map it to a column chart for now, or a simple table if structure is complex.
-
     const steps = data.props.steps || [];
     if (steps.length === 0) {
         pptSlide.addText("No waterfall steps available for export.", {
@@ -210,22 +214,118 @@ function drawWaterfallContent(pres: any, pptSlide: any, data: SlideData) {
         });
         return;
     }
-    const labels = steps.map((s: any) => s.label);
-    const values = steps.map((s: any) => s.value);
 
-    // Using a simple column chart to represent the movements
-    const chartData = [{
-        name: "Impact",
-        labels: labels,
-        values: values
-    }];
+    // Calculate cumulative values for proper waterfall visualization
+    let cumulative = 0;
+    const waterfallData: any[] = [];
+    
+    steps.forEach((step: any, idx: number) => {
+        const value = step.value || 0;
+        const type = step.type || 'plus';
+        
+        if (type === 'total') {
+            cumulative = value;
+            waterfallData.push({ 
+                label: step.label, 
+                value: value, 
+                base: 0,
+                type: 'total',
+                idx 
+            });
+        } else if (type === 'subtotal') {
+            waterfallData.push({ 
+                label: step.label, 
+                value: cumulative, 
+                base: 0,
+                type: 'subtotal',
+                idx 
+            });
+        } else {
+            const prevCumulative = cumulative;
+            cumulative += value;
+            waterfallData.push({ 
+                label: step.label, 
+                value: Math.abs(value),
+                base: value >= 0 ? prevCumulative : cumulative,
+                type: type,
+                idx
+            });
+        }
+    });
 
-    pptSlide.addChart(pres.ChartType.bar, chartData, {
-        x: 1, y: 2, w: 8, h: 4,
-        barDir: 'col',
-        title: "Profitability Bridge",
-        showValue: true,
-        chartColors: [data.theme.primary.replace('#', '')]
+    // Draw improved waterfall with rectangles
+    const chartX = 1.5;
+    const chartY = 2;
+    const chartWidth = 7;
+    const chartHeight = 3.5;
+    const barWidth = chartWidth / Math.max(steps.length, 1);
+    const maxValue = Math.max(...waterfallData.map((d: any) => 
+        (d.type === 'total' || d.type === 'subtotal') ? d.value : d.base + d.value
+    ));
+    const scale = maxValue > 0 ? chartHeight / maxValue : 0;
+
+    waterfallData.forEach((item: any) => {
+        const xPos = chartX + (item.idx * barWidth);
+        const color = item.type === 'minus' 
+            ? 'FF6B6B' 
+            : item.type === 'total' || item.type === 'subtotal'
+            ? data.theme.primary.replace('#', '')
+            : data.theme.secondary.replace('#', '');
+
+        const barHeight = item.value * scale;
+        const baseHeight = item.base * scale;
+        const yPos = chartY + chartHeight - baseHeight - barHeight;
+
+        // Draw floating connector line from previous bar (if not total)
+        if (item.idx > 0 && item.type !== 'total' && item.type !== 'subtotal') {
+            const prevItem = waterfallData[item.idx - 1];
+            const prevTop = chartY + chartHeight - (prevItem.type === 'total' || prevItem.type === 'subtotal' 
+                ? prevItem.value * scale 
+                : (prevItem.base + prevItem.value) * scale);
+            
+            pptSlide.addShape(pres.ShapeType.line, {
+                x: xPos - barWidth + 0.05,
+                y: prevTop,
+                w: barWidth - 0.1,
+                h: 0,
+                line: { color: "CBD5E1", width: 1, dashType: "dash" }
+            });
+        }
+
+        // Draw bar
+        pptSlide.addShape(pres.ShapeType.rect, {
+            x: xPos + 0.05,
+            y: yPos,
+            w: barWidth - 0.15,
+            h: barHeight,
+            fill: { color: color },
+            line: { color: "FFFFFF", width: 1 }
+        });
+
+        // Label
+        pptSlide.addText(item.label || "", {
+            x: xPos,
+            y: chartY + chartHeight + 0.1,
+            w: barWidth - 0.05,
+            h: 0.4,
+            fontSize: 9,
+            align: "center",
+            color: "334155",
+            valign: "top"
+        });
+
+        // Value text on bar
+        const displayValue = steps[item.idx]?.value || 0;
+        pptSlide.addText(displayValue > 0 ? `+${displayValue}` : String(displayValue), {
+            x: xPos + 0.05,
+            y: yPos - 0.25,
+            w: barWidth - 0.15,
+            h: 0.2,
+            fontSize: 10,
+            align: "center",
+            bold: true,
+            color: "1F2933"
+        });
     });
 }
 
@@ -425,5 +525,157 @@ function drawFinancialContent(pres: any, pptSlide: any, data: SlideData) {
         chartColors: [data.theme.primary.replace('#', '')],
         showLegend: false,
         title: "Financial Impact"
+    });
+}
+function drawUnitEconomicsContent(pres: any, pptSlide: any, data: SlideData) {
+    const { cac, ltv, ratio } = data.props;
+    
+    if (!cac || !ltv) {
+        pptSlide.addText("No unit economics data available for export.", {
+            x: 1, y: 3, w: 8, h: 1, color: "94A3B8", fontSize: 16
+        });
+        return;
+    }
+
+    // Title
+    pptSlide.addText("Unit Economics", {
+        x: 0.5, y: 1.5, w: 4, h: 0.5,
+        fontSize: 24, bold: true, color: data.theme.secondary.replace('#', '')
+    });
+
+    // CAC Circle
+    pptSlide.addShape(pres.ShapeType.ellipse, {
+        x: 1.5, y: 2.5, w: 2, h: 2,
+        fill: { color: "F1F5F9" },
+        line: { color: data.theme.secondary.replace('#', ''), width: 3 }
+    });
+    pptSlide.addText("CAC", {
+        x: 1.5, y: 2.7, w: 2, h: 0.3,
+        fontSize: 12, align: "center", color: "64748B"
+    });
+    pptSlide.addText(`$${cac}`, {
+        x: 1.5, y: 3.1, w: 2, h: 0.5,
+        fontSize: 28, align: "center", bold: true, color: "1F2933"
+    });
+
+    // Arrow
+    pptSlide.addShape(pres.ShapeType.rightArrow, {
+        x: 3.7, y: 3.3, w: 1, h: 0.4,
+        fill: { color: "CBD5E1" }
+    });
+
+    // LTV Circle
+    pptSlide.addShape(pres.ShapeType.ellipse, {
+        x: 5, y: 2.5, w: 2, h: 2,
+        fill: { color: data.theme.primary.replace('#', '') },
+        line: { color: "FFFFFF", width: 2 }
+    });
+    pptSlide.addText("LTV", {
+        x: 5, y: 2.7, w: 2, h: 0.3,
+        fontSize: 12, align: "center", color: "FFFFFF"
+    });
+    pptSlide.addText(`$${ltv}`, {
+        x: 5, y: 3.1, w: 2, h: 0.5,
+        fontSize: 28, align: "center", bold: true, color: "FFFFFF"
+    });
+
+    // Ratio display
+    const isHealthy = ratio >= 3;
+    pptSlide.addText(`LTV:CAC Ratio: ${ratio.toFixed(1)}x`, {
+        x: 2, y: 5, w: 5, h: 0.5,
+        fontSize: 18, align: "center", bold: true,
+        color: isHealthy ? "10B981" : "EF4444"
+    });
+    pptSlide.addText(isHealthy ? "✓ Healthy" : "⚠ Below Target", {
+        x: 2, y: 5.5, w: 5, h: 0.3,
+        fontSize: 14, align: "center",
+        color: isHealthy ? "10B981" : "EF4444"
+    });
+}
+
+function drawFinancialProjectionsContent(pres: any, pptSlide: any, data: SlideData) {
+    const { years, revenue, ebitda } = data.props;
+    
+    if (!years || !revenue || !ebitda || years.length === 0) {
+        pptSlide.addText("No financial projections data available for export.", {
+            x: 1, y: 3, w: 8, h: 1, color: "94A3B8", fontSize: 16
+        });
+        return;
+    }
+
+    const chartData = [
+        { name: "Revenue ($M)", labels: years, values: revenue },
+        { name: "EBITDA Margin (%)", labels: years, values: ebitda }
+    ];
+
+    pptSlide.addChart(pres.ChartType.bar, chartData, {
+        x: 1, y: 2, w: 8, h: 4,
+        barDir: 'col',
+        barGrouping: "clustered",
+        chartColors: [data.theme.primary.replace('#', ''), data.theme.secondary.replace('#', '')],
+        showLegend: true,
+        showValue: true,
+        title: "Financial Projections (5-Year)"
+    });
+}
+
+function drawMarketWaterfallContent(pres: any, pptSlide: any, data: SlideData) {
+    const { tam, sam, som, currency } = data.props;
+    
+    if (!tam || !sam || !som) {
+        pptSlide.addText("No market waterfall data available for export.", {
+            x: 1, y: 3, w: 8, h: 1, color: "94A3B8", fontSize: 16
+        });
+        return;
+    }
+
+    // Title
+    pptSlide.addText("Market Opportunity", {
+        x: 0.5, y: 1.5, w: 8, h: 0.5,
+        fontSize: 24, bold: true, color: data.theme.secondary.replace('#', '')
+    });
+
+    const markets = [
+        { label: "TAM", value: tam, color: data.theme.secondary.replace('#', ''), sub: "Total Addressable" },
+        { label: "SAM", value: sam, color: data.theme.primary.replace('#', ''), sub: "Serviceable Available" },
+        { label: "SOM", value: som, color: "10B981", sub: "Serviceable Obtainable" }
+    ];
+
+    const maxValue = tam;
+    const chartHeight = 3.5;
+    const barWidth = 1.5;
+    const spacing = 2;
+
+    markets.forEach((market, idx) => {
+        const xPos = 2 + (idx * spacing);
+        const heightRatio = market.value / maxValue;
+        const barHeight = chartHeight * heightRatio;
+        const yPos = 6 - barHeight;
+
+        // Bar
+        pptSlide.addShape(pres.ShapeType.rect, {
+            x: xPos, y: yPos, w: barWidth, h: barHeight,
+            fill: { color: market.color },
+            line: { color: "FFFFFF", width: 2 }
+        });
+
+        // Label
+        pptSlide.addText(market.label, {
+            x: xPos, y: 6.2, w: barWidth, h: 0.3,
+            fontSize: 14, align: "center", bold: true, color: "1F2933"
+        });
+
+        // Sub-label
+        pptSlide.addText(market.sub, {
+            x: xPos, y: 6.5, w: barWidth, h: 0.3,
+            fontSize: 10, align: "center", color: "64748B"
+        });
+
+        // Value on top
+        const formattedValue = `${currency || '$'}${market.value}M`;
+        pptSlide.addText(formattedValue, {
+            x: xPos, y: yPos - 0.35, w: barWidth, h: 0.3,
+            fontSize: 12, align: "center", bold: true, color: "1F2933"
+        });
     });
 }

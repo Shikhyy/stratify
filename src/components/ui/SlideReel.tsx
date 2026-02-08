@@ -5,6 +5,8 @@ import { useDeck } from '../../context/DeckContext';
 import { STRATIFY_TOOLS } from '../../tambo.config';
 import { clsx } from 'clsx';
 import { Plus } from 'lucide-react';
+import { GlowingEffect } from './glowing-effect';
+import { ErrorBoundary } from './ErrorBoundary';
 
 interface SlideReelProps {
     currentIndex: number;
@@ -59,13 +61,32 @@ export const SlideReel: React.FC<SlideReelProps> = ({ currentIndex, onSelect }) 
                                     isActive ? "border-primary scale-105 shadow-[0_0_20px_rgba(236,72,153,0.4)]" : "border-white/10 opacity-60 hover:opacity-100 hover:border-white/30"
                                 )}
                             >
+                                <GlowingEffect
+                                    spread={30}
+                                    glow={true}
+                                    disabled={!isActive}
+                                    proximity={40}
+                                    inactiveZone={0.2}
+                                    borderWidth={2}
+                                />
                                 {/* Tiny Preview */}
                                 <div className="absolute inset-0 pointer-events-none origin-top-left transform scale-[0.066] w-[1920px] h-[1080px] bg-slate-900">
-                                    {Component && <Component {...slide.props} variant="minimal" />}
+                                    {Component && (
+                                        <ErrorBoundary
+                                            name={`SlideThumb:${slide.type}`}
+                                            fallback={
+                                                <div className="w-full h-full flex items-center justify-center text-white/40 text-[8px]">
+                                                    Preview error
+                                                </div>
+                                            }
+                                        >
+                                            <Component {...slide.props} variant="minimal" />
+                                        </ErrorBoundary>
+                                    )}
                                 </div>
 
                                 {/* Overlay Number */}
-                                <div className="absolute bottom-1 right-1 px-1.5 py-0.5 bg-black/60 rounded text-[8px] font-mono text-white/80">
+                                <div className="absolute bottom-1 right-1 px-1.5 py-0.5 bg-black/60 rounded text-[8px] font-mono text-white/80 z-10">
                                     {idx + 1}
                                 </div>
                             </motion.button>
@@ -75,12 +96,22 @@ export const SlideReel: React.FC<SlideReelProps> = ({ currentIndex, onSelect }) 
             </div>
 
             {/* Add Slide Button */}
-            <button
-                onClick={handleAddSlide}
-                className="flex-shrink-0 w-12 h-16 rounded-lg border border-dashed border-white/20 flex items-center justify-center text-white/30 hover:text-primary hover:border-primary/50 transition-colors"
-            >
-                <Plus size={20} />
-            </button>
+            <div className="relative group">
+                <button
+                    onClick={handleAddSlide}
+                    className="relative flex-shrink-0 w-12 h-16 rounded-lg border border-dashed border-white/20 flex items-center justify-center text-white/30 hover:text-primary hover:border-primary/50 transition-colors overflow-hidden"
+                >
+                    <GlowingEffect
+                        spread={35}
+                        glow={true}
+                        disabled={false}
+                        proximity={50}
+                        inactiveZone={0.2}
+                        borderWidth={1.5}
+                    />
+                    <Plus size={20} className="relative z-10" />
+                </button>
+            </div>
         </div>
     );
 };

@@ -5,6 +5,7 @@ import { usePitch } from '../context/PitchContext';
 import { validateBlock } from '../utils/consultingRules';
 import { useTheme } from '../context/ThemeContext';
 import { THEME } from '../context/DeckContext';
+import { GlowingEffect } from './ui/glowing-effect';
 
 interface PitchBlockProps {
     block: PitchBlock;
@@ -100,18 +101,38 @@ export const PitchBlockComponent: React.FC<PitchBlockProps> = ({
                             e.stopPropagation();
                             lockBlock(block.id);
                         }}
-                        className={`p-1 rounded transition-colors ${isDark ? 'hover:bg-white/10 text-slate-400 hover:text-white' : 'hover:bg-slate-200 text-slate-600 hover:text-slate-900'}`}
+                        className={`relative p-1 rounded transition-colors overflow-hidden ${isDark ? 'hover:bg-white/10 text-slate-400 hover:text-white' : 'hover:bg-slate-200 text-slate-600 hover:text-slate-900'}`}
                     >
-                        {block.locked ? <Lock size={16} /> : <Unlock size={16} />}
+                        <GlowingEffect
+                            spread={18}
+                            glow={true}
+                            disabled={false}
+                            proximity={30}
+                            inactiveZone={0.3}
+                            borderWidth={1}
+                        />
+                        <span className="relative z-10">
+                            {block.locked ? <Lock size={16} /> : <Unlock size={16} />}
+                        </span>
                     </button>
                     <button
                         onClick={e => {
                             e.stopPropagation();
                             setIsExpanded(!isExpanded);
                         }}
-                        className={`p-1 transition-colors ${isDark ? 'text-slate-400 hover:text-white' : 'text-slate-600 hover:text-slate-900'}`}
+                        className={`relative p-1 transition-colors overflow-hidden ${isDark ? 'text-slate-400 hover:text-white' : 'text-slate-600 hover:text-slate-900'}`}
                     >
-                        {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                        <GlowingEffect
+                            spread={18}
+                            glow={true}
+                            disabled={false}
+                            proximity={30}
+                            inactiveZone={0.3}
+                            borderWidth={1}
+                        />
+                        <span className="relative z-10">
+                            {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                        </span>
                     </button>
                 </div>
             </div>
@@ -124,27 +145,53 @@ export const PitchBlockComponent: React.FC<PitchBlockProps> = ({
                     {/* Edit Mode */}
                     {isEditing ? (
                         <div className="space-y-2">
-                            <textarea
-                                value={editContent}
-                                onChange={e => setEditContent(e.target.value)}
-                                className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none resize-none ${isDark ? 'bg-white/5 border-primary/30 text-white' : 'bg-slate-50 border-slate-300 text-slate-900'}`}
-                                rows={4}
-                            />
+                            <div className="relative rounded-lg">
+                                <GlowingEffect
+                                    spread={24}
+                                    glow={true}
+                                    disabled={false}
+                                    proximity={50}
+                                    inactiveZone={0.4}
+                                    borderWidth={1}
+                                />
+                                <textarea
+                                    value={editContent}
+                                    onChange={e => setEditContent(e.target.value)}
+                                    className={`relative z-10 w-full border rounded-lg px-3 py-2 text-sm focus:outline-none resize-none ${isDark ? 'bg-white/5 border-primary/30 text-white' : 'bg-slate-50 border-slate-300 text-slate-900'}`}
+                                    rows={4}
+                                />
+                            </div>
                             <div className="flex gap-2">
                                 <button
                                     onClick={handleSave}
-                                    className="px-3 py-1 bg-primary text-white text-xs font-semibold rounded hover:opacity-90 transition-opacity"
+                                    className="relative px-3 py-1 bg-primary text-white text-xs font-semibold rounded hover:opacity-90 transition-opacity overflow-hidden"
                                 >
-                                    Save
+                                    <GlowingEffect
+                                        spread={22}
+                                        glow={true}
+                                        disabled={false}
+                                        proximity={38}
+                                        inactiveZone={0.3}
+                                        borderWidth={1}
+                                    />
+                                    <span className="relative z-10">Save</span>
                                 </button>
                                 <button
                                     onClick={() => {
                                         setEditContent(block.content);
                                         setIsEditing(false);
                                     }}
-                                    className={`px-3 py-1 text-xs font-semibold rounded transition-colors ${isDark ? 'bg-white/10 text-slate-300 hover:bg-white/20' : 'bg-slate-200 text-slate-700 hover:bg-slate-300'}`}
+                                    className={`relative px-3 py-1 text-xs font-semibold rounded transition-colors overflow-hidden ${isDark ? 'bg-white/10 text-slate-300 hover:bg-white/20' : 'bg-slate-200 text-slate-700 hover:bg-slate-300'}`}
                                 >
-                                    Cancel
+                                    <GlowingEffect
+                                        spread={22}
+                                        glow={true}
+                                        disabled={false}
+                                        proximity={38}
+                                        inactiveZone={0.3}
+                                        borderWidth={1}
+                                    />
+                                    <span className="relative z-10">Cancel</span>
                                 </button>
                             </div>
                         </div>
@@ -186,14 +233,24 @@ export const PitchBlockComponent: React.FC<PitchBlockProps> = ({
                                             key={btn.label}
                                             onClick={() => handleRegenerate(btn.instruction)}
                                             disabled={isRegenerating}
-                                            className={`px-3 py-2 text-xs font-medium rounded transition-colors disabled:opacity-50 flex items-center justify-center gap-1 ${isDark ? 'bg-white/10 hover:bg-white/20 text-white' : 'bg-slate-200 hover:bg-slate-300 text-slate-900'}`}
+                                            className={`relative px-3 py-2 text-xs font-medium rounded transition-colors disabled:opacity-50 flex items-center justify-center gap-1 overflow-hidden ${isDark ? 'bg-white/10 hover:bg-white/20 text-white' : 'bg-slate-200 hover:bg-slate-300 text-slate-900'}`}
                                         >
-                                            {isRegenerating && selectedInstruction === btn.instruction ? (
-                                                <div className="animate-spin">⚡</div>
-                                            ) : (
-                                                <RefreshCw size={12} />
-                                            )}
-                                            {btn.label}
+                                            <GlowingEffect
+                                                spread={22}
+                                                glow={true}
+                                                disabled={false}
+                                                proximity={38}
+                                                inactiveZone={0.3}
+                                                borderWidth={1}
+                                            />
+                                            <span className="relative z-10 flex items-center gap-1">
+                                                {isRegenerating && selectedInstruction === btn.instruction ? (
+                                                    <div className="animate-spin">⚡</div>
+                                                ) : (
+                                                    <RefreshCw size={12} />
+                                                )}
+                                                {btn.label}
+                                            </span>
                                         </button>
                                     ))}
                                 </div>
@@ -204,16 +261,34 @@ export const PitchBlockComponent: React.FC<PitchBlockProps> = ({
                                 <button
                                     onClick={() => setIsEditing(true)}
                                     disabled={block.locked}
-                                    className="flex-1 px-3 py-1 bg-primary/10 hover:bg-primary/20 text-primary text-xs font-semibold rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="relative flex-1 px-3 py-1 bg-primary/10 hover:bg-primary/20 text-primary text-xs font-semibold rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed overflow-hidden"
                                 >
-                                    Edit
+                                    <GlowingEffect
+                                        spread={22}
+                                        glow={true}
+                                        disabled={block.locked}
+                                        proximity={38}
+                                        inactiveZone={0.3}
+                                        borderWidth={1}
+                                    />
+                                    <span className="relative z-10">Edit</span>
                                 </button>
                                 <button
                                     onClick={() => deleteBlock(block.id)}
-                                    className={`flex-1 px-3 py-1 text-xs font-semibold rounded transition-colors ${isDark ? 'bg-red-500/20 hover:bg-red-500/30 text-red-300' : 'bg-red-100 hover:bg-red-200 text-red-700'}`}
+                                    className={`relative flex-1 px-3 py-1 text-xs font-semibold rounded transition-colors overflow-hidden ${isDark ? 'bg-red-500/20 hover:bg-red-500/30 text-red-300' : 'bg-red-100 hover:bg-red-200 text-red-700'}`}
                                 >
-                                    <Trash2 size={12} className="inline mr-1" />
-                                    Delete
+                                    <GlowingEffect
+                                        spread={22}
+                                        glow={true}
+                                        disabled={false}
+                                        proximity={38}
+                                        inactiveZone={0.3}
+                                        borderWidth={1}
+                                    />
+                                    <span className="relative z-10 flex items-center gap-1">
+                                        <Trash2 size={12} />
+                                        Delete
+                                    </span>
                                 </button>
                             </div>
                         </>

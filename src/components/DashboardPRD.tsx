@@ -1,4 +1,5 @@
 import React, { useCallback, useMemo, useState } from 'react';
+import { motion } from 'framer-motion';
 import type { PitchBlock } from '../context/PitchContext';
 import { usePitch } from '../context/PitchContext';
 import { useDeck } from '../context/DeckContext';
@@ -7,12 +8,15 @@ import { useTheme } from '../context/ThemeContext';
 import { CaseInputPanel } from './CaseInputPanel';
 import { IntelligencePanel } from './IntelligencePanel.tsx';
 import { ChatInterface } from './ChatInterface';
+import { PitchBlockCard } from './PitchBlockCard';
 import { useJudgeEvaluator } from '../hooks/useJudgeEvaluator';
-import { Download, BarChart3, Sparkles, ChevronDown, MessageSquare, Moon, Sun } from 'lucide-react';
+import { Download, BarChart3, Sparkles, ChevronDown, MessageSquare, Moon, Sun, ChevronLeft, ChevronRight } from 'lucide-react';
 import { GenerationAnimation } from './ui/GenerationAnimation';
 import { DeckPreviewModal } from './DeckPreviewModal';
+import { ErrorBoundary } from './ui/ErrorBoundary';
 import { STRATIFY_TOOLS } from '../tambo.config';
 import { SlideReel } from './ui/SlideReel';
+import { GlowingEffect } from './ui/glowing-effect';
 import {
     buildBlocksFromStoryline,
     buildSlidesFromStoryline,
@@ -46,7 +50,6 @@ export const DashboardPRD: React.FC = () => {
     const [isPreviewOpen, setIsPreviewOpen] = useState(false);
     const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
     const [storyline, setStoryline] = useState<StorylineSlide[]>([]);
-    const [expandedBlockId, setExpandedBlockId] = useState<string | null>(null);
 
     const currentSlide = slides[currentSlideIndex];
     const SlideComponent = useMemo(() => {
@@ -78,6 +81,38 @@ export const DashboardPRD: React.FC = () => {
             constraints: 'No increase in staffing, fixed budget.',
             targetMetric: 'Reduce average wait time by 50%.',
             industry: 'healthcare',
+        },
+        {
+            id: 'ecommerce-returns',
+            title: 'E-commerce Return Rate Crisis',
+            problemStatement: 'Product return rate has increased to 35%, causing massive losses and inventory issues.',
+            constraints: 'Cannot change return policy, limited packaging budget.',
+            targetMetric: 'Reduce return rate to under 18% in 6 months.',
+            industry: 'ecommerce',
+        },
+        {
+            id: 'saas-churn',
+            title: 'SaaS Customer Retention',
+            problemStatement: 'Monthly churn is at 8%, losing high-value enterprise customers to competitors.',
+            constraints: 'No major product overhaul, maintain pricing.',
+            targetMetric: 'Reduce churn to <3% and increase NPS by 20 points.',
+            industry: 'tech',
+        },
+        {
+            id: 'manufacturing-efficiency',
+            title: 'Manufacturing Output Optimization',
+            problemStatement: 'Production line efficiency is 65% with high downtime and quality defects.',
+            constraints: 'No new equipment purchases, union agreements in place.',
+            targetMetric: 'Achieve 85% efficiency in 9 months.',
+            industry: 'manufacturing',
+        },
+        {
+            id: 'edtech-engagement',
+            title: 'EdTech Platform Engagement',
+            problemStatement: 'Course completion rate is only 22%, causing poor student outcomes and low renewal rates.',
+            constraints: 'Fixed content budget, must scale to 10x users.',
+            targetMetric: 'Increase completion rate to 60% within 12 months.',
+            industry: 'education',
         },
     ];
 
@@ -163,15 +198,30 @@ export const DashboardPRD: React.FC = () => {
             {/* Top Navigation */}
             <div className={`h-16 w-full ${isDark ? 'bg-slate-900/80 backdrop-blur-md border-white/10' : 'bg-white border-slate-200'} border-b px-6 flex items-center justify-between`}>
                 <div className="flex items-center gap-4">
-                    <div className={`flex items-center gap-2 font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                    <button 
+                        onClick={() => {
+                            window.history.pushState({}, '', '/');
+                            window.location.reload();
+                        }}
+                        className={`flex items-center gap-2 font-bold hover:opacity-70 transition-opacity ${isDark ? 'text-white' : 'text-slate-900'}`}
+                        title="Back to landing page"
+                    >
                         <div className="w-2 h-2 rounded-full bg-primary" />
-                        Stratify
-                    </div>
+                        <span className="font-logo tracking-[0.14em]">STRATIFY</span>
+                    </button>
                     <div className="relative">
+                        <GlowingEffect
+                            spread={24}
+                            glow={true}
+                            disabled={false}
+                            proximity={50}
+                            inactiveZone={0.4}
+                            borderWidth={1}
+                        />
                         <select
                             value={selectedCase}
                             onChange={e => handlePresetChange(e.target.value)}
-                            className={`appearance-none ${isDark ? 'bg-white/5 border-white/10 text-white' : 'bg-white border-slate-300 text-slate-900'} border text-sm rounded-lg px-4 py-2 pr-8`}
+                            className={`relative z-10 appearance-none ${isDark ? 'bg-white/5 border-white/10 text-white' : 'bg-white border-slate-300 text-slate-900'} border text-sm rounded-lg px-4 py-2 pr-8`}
                         >
                             <option value="">Select Case</option>
                             {casePresets.map(preset => (
@@ -184,57 +234,113 @@ export const DashboardPRD: React.FC = () => {
                 <div className="flex items-center gap-3">
                     <button
                         onClick={toggleTheme}
-                        className={`px-3 py-2 rounded-lg text-sm font-medium border transition-colors ${
+                        className={`relative px-3 py-2 rounded-lg text-sm font-medium border transition-colors overflow-hidden ${
                             isDark 
                                 ? 'bg-white/10 border-white/20 text-white hover:bg-white/20' 
                                 : 'bg-slate-200 border-slate-300 text-slate-700 hover:bg-slate-300'
                         }`}
                         title="Toggle theme"
                     >
-                        {isDark ? <Sun size={16} /> : <Moon size={16} />}
+                        <GlowingEffect
+                            spread={26}
+                            glow={true}
+                            disabled={false}
+                            proximity={40}
+                            inactiveZone={0.25}
+                            borderWidth={1.5}
+                        />
+                        <span className="relative z-10">{isDark ? <Sun size={16} /> : <Moon size={16} />}</span>
                     </button>
                     <button
                         onClick={() => setJudgeMode(!judgeMode)}
-                        className={`px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${
-                            judgeMode ? 'bg-primary/20 border-primary/40 text-primary' : isDark ? 'bg-white/5 border-white/10 text-white' : 'bg-slate-100 border-slate-300 text-slate-700'
+                        className={`relative px-4 py-2 rounded-lg text-sm font-medium border transition-colors overflow-hidden ${
+                            judgeMode
+                                ? isDark
+                                    ? 'bg-white/15 border-white/30 text-white backdrop-blur-md shadow-[0_8px_24px_rgba(255,255,255,0.08)]'
+                                    : 'bg-white/80 border-white/60 text-slate-900 backdrop-blur-md shadow-[0_8px_24px_rgba(15,23,42,0.12)]'
+                                : isDark
+                                    ? 'bg-white/5 border-white/15 text-slate-200 hover:bg-white/10 backdrop-blur-md'
+                                    : 'bg-white/60 border-white/50 text-slate-700 hover:bg-white/80 backdrop-blur-md'
                         }`}
                     >
-                        Judge Mode {judgeMode ? 'On' : 'Off'}
+                        <GlowingEffect
+                            spread={30}
+                            glow={true}
+                            disabled={false}
+                            proximity={45}
+                            inactiveZone={0.25}
+                            borderWidth={1.5}
+                        />
+                        <span className="relative z-10">Judge Mode {judgeMode ? 'On' : 'Off'}</span>
                     </button>
                     <button
                         onClick={() => setIsPreviewOpen(true)}
                         disabled={slides.length === 0}
-                        className={`px-4 py-2 border text-sm rounded-lg transition-colors disabled:opacity-50 ${
+                        className={`relative px-4 py-2 border text-sm rounded-lg transition-colors disabled:opacity-50 overflow-hidden ${
                             isDark ? 'bg-white/5 border-white/10 text-white hover:bg-white/10' : 'bg-slate-100 border-slate-300 text-slate-900 hover:bg-slate-200'
                         }`}
                     >
-                        Preview Deck
+                        <GlowingEffect
+                            spread={28}
+                            glow={true}
+                            disabled={slides.length === 0}
+                            proximity={45}
+                            inactiveZone={0.25}
+                            borderWidth={1.5}
+                        />
+                        <span className="relative z-10">Preview Deck</span>
                     </button>
                     <button
                         onClick={handleExport}
                         disabled={slides.length === 0}
-                        className={`px-4 py-2 bg-primary text-white font-medium text-sm rounded-lg hover:shadow-lg hover:shadow-primary/30 transition-all disabled:opacity-50`}
+                        className={`relative px-4 py-2 bg-primary text-white font-medium text-sm rounded-lg hover:shadow-lg hover:shadow-primary/30 transition-all disabled:opacity-50 overflow-hidden`}
                     >
-                        <Download size={16} className="inline mr-2" />
-                        Export PPTX
+                        <GlowingEffect
+                            spread={32}
+                            glow={true}
+                            disabled={slides.length === 0}
+                            proximity={55}
+                            inactiveZone={0.2}
+                            borderWidth={1.5}
+                        />
+                        <span className="relative z-10 flex items-center gap-2">
+                            <Download size={16} />
+                            Export PPTX
+                        </span>
                     </button>
                     <button
                         onClick={handleExportPdf}
                         disabled={slides.length === 0}
-                        className={`px-3 py-2 border text-sm rounded-lg transition-colors disabled:opacity-50 ${
+                        className={`relative px-3 py-2 border text-sm rounded-lg transition-colors disabled:opacity-50 overflow-hidden ${
                             isDark ? 'bg-white/5 border-white/10 text-white hover:bg-white/10' : 'bg-slate-100 border-slate-300 text-slate-900 hover:bg-slate-200'
                         }`}
                     >
-                        PDF
+                        <GlowingEffect
+                            spread={26}
+                            glow={true}
+                            disabled={slides.length === 0}
+                            proximity={40}
+                            inactiveZone={0.25}
+                            borderWidth={1.5}
+                        />
+                        <span className="relative z-10">PDF</span>
                     </button>
                     <button
                         onClick={handleExportSlides}
                         disabled={slides.length === 0}
-                        className={`px-3 py-2 border text-sm rounded-lg transition-colors disabled:opacity-50 ${
+                        className={`relative px-3 py-2 border text-sm rounded-lg transition-colors disabled:opacity-50 overflow-hidden ${
                             isDark ? 'bg-white/5 border-white/10 text-white hover:bg-white/10' : 'bg-slate-100 border-slate-300 text-slate-900 hover:bg-slate-200'
                         }`}
                     >
-                        Slides
+                        <GlowingEffect
+                            spread={26}
+                            glow={true}
+                            disabled={slides.length === 0}
+                            proximity={40}
+                            inactiveZone={0.25}
+                            borderWidth={1.5}
+                        />
+                        <span className="relative z-10">Slides</span>
                     </button>
                 </div>
             </div>
@@ -258,12 +364,22 @@ export const DashboardPRD: React.FC = () => {
                             <button
                                 onClick={handleEvaluate}
                                 disabled={blocks.length === 0 || isGenerating}
-                                className={`px-4 py-2 border font-medium text-sm rounded-lg transition-colors disabled:opacity-50 ${
+                                className={`relative px-4 py-2 border font-medium text-sm rounded-lg transition-colors disabled:opacity-50 overflow-hidden ${
                                     isDark ? 'bg-white/10 border-white/10 hover:bg-white/20 text-white' : 'bg-slate-100 border-slate-300 hover:bg-slate-200 text-slate-900'
                                 }`}
                             >
-                                <BarChart3 size={16} className="inline mr-2" />
-                                Judge Eval
+                                <GlowingEffect
+                                    spread={28}
+                                    glow={true}
+                                    disabled={blocks.length === 0 || isGenerating}
+                                    proximity={45}
+                                    inactiveZone={0.25}
+                                    borderWidth={1.5}
+                                />
+                                <span className="relative z-10 flex items-center gap-2">
+                                    <BarChart3 size={16} />
+                                    Judge Eval
+                                </span>
                             </button>
                         </div>
                     </div>
@@ -287,43 +403,115 @@ export const DashboardPRD: React.FC = () => {
                     )}
 
                     {/* Slide Canvas */}
-                    <div className="flex-1 flex items-center justify-center p-10 relative">
-                        <div className={`absolute inset-0 opacity-[0.02] pointer-events-none`}
+                    <div className={`flex-1 flex items-center justify-center p-8 relative bg-gradient-to-br ${isDark ? 'from-slate-900 via-slate-950 to-slate-900' : 'from-slate-50 via-white to-slate-50'}`}>
+                        {/* Background Pattern */}
+                        <div className={`absolute inset-0 opacity-[0.03] pointer-events-none`}
                             style={{ 
                                 backgroundImage: `radial-gradient(circle at 2px 2px, ${isDark ? 'white' : 'slate'} 1px, transparent 0)`, 
                                 backgroundSize: '40px 40px' 
                             }}
                         />
+                        
+                        {/* Glow Effects */}
+                        <div className={`absolute -top-40 -right-40 w-80 h-80 rounded-full blur-3xl opacity-20 pointer-events-none ${isDark ? 'bg-primary/10' : 'bg-primary/5'}`} />
+                        <div className={`absolute -bottom-40 -left-40 w-80 h-80 rounded-full blur-3xl opacity-20 pointer-events-none ${isDark ? 'bg-magenta/10' : 'bg-magenta/5'}`} />
 
                         {slides.length === 0 ? (
-                            <div className="text-center max-w-lg z-10">
-                                <div className="mb-6 flex justify-center">
-                                    <div className="w-20 h-20 bg-primary rounded-3xl flex items-center justify-center shadow-lg shadow-primary/20">
-                                        <Sparkles className="text-white w-10 h-10" />
-                                    </div>
-                                </div>
-                                <h2 className={`text-2xl font-bold mb-3 ${isDark ? 'text-white' : 'text-slate-900'}`}>Generate your case deck</h2>
-                                <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
-                                    Fill in the case inputs and click Generate to lock the storyline.
-                                </p>
-                            </div>
-                        ) : (
-                            <div
-                                style={{ perspective: '1200px' }}
-                                className="w-full max-w-[95%]"
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                transition={{ duration: 0.5 }}
+                                className="text-center max-w-lg z-10"
                             >
-                                <div
-                                    key={currentSlide?.id}
-                                    style={{ transformStyle: 'preserve-3d' }}
-                                    className={`aspect-video rounded-2xl overflow-hidden ring-1 z-10 ${isDark ? 'shadow-xl shadow-black/40 ring-white/10 bg-slate-900' : 'shadow-xl shadow-slate-200 ring-slate-300 bg-white'}`}
+                                <motion.div
+                                    className="mb-8 flex justify-center"
+                                    animate={{ y: [0, -8, 0] }}
+                                    transition={{ duration: 3, repeat: Infinity }}
                                 >
-                                    {SlideComponent ? (
-                                        <SlideComponent {...currentSlide.props} />
-                                    ) : (
-                                        <div className="flex items-center justify-center h-full text-slate-400 text-sm">
-                                            Unknown slide type.
-                                        </div>
-                                    )}
+                                    <div className={`w-24 h-24 bg-gradient-to-br from-primary to-magenta rounded-3xl flex items-center justify-center ${isDark ? 'shadow-2xl shadow-primary/30' : 'shadow-2xl shadow-primary/20'}`}>
+                                        <Sparkles className="text-white w-12 h-12" />
+                                    </div>
+                                </motion.div>
+                                <h2 className={`text-3xl font-bold mb-3 ${isDark ? 'text-white' : 'text-slate-900'}`}>Generate your case deck</h2>
+                                <p className={`text-sm leading-relaxed ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                                    Fill in the case inputs and click <span className="font-semibold">Generate Pitch</span> to lock your strategic storyline.
+                                </p>
+                            </motion.div>
+                        ) : (
+                            <div className="w-full h-full flex flex-col items-center justify-center">
+                                {/* Slide Navigation Arrows */}
+                                <div className="absolute left-4 top-1/2 -translate-y-1/2 z-30">
+                                    <button
+                                        onClick={() => setCurrentSlideIndex(Math.max(0, currentSlideIndex - 1))}
+                                        disabled={currentSlideIndex === 0}
+                                        className={`relative p-3 rounded-full transition-all ${
+                                            isDark
+                                                ? 'bg-white/10 hover:bg-white/20 disabled:opacity-30 text-white'
+                                                : 'bg-white/80 hover:bg-white disabled:opacity-30 text-slate-900'
+                                        }`}
+                                    >
+                                        <ChevronLeft size={24} />
+                                    </button>
+                                </div>
+
+                                <div
+                                    style={{ perspective: '1400px' }}
+                                    className="w-full flex items-center justify-center max-h-[70vh]"
+                                >
+                                    <motion.div
+                                        key={currentSlide?.id}
+                                        initial={{ opacity: 0, rotateY: -20, scale: 0.95 }}
+                                        animate={{ opacity: 1, rotateY: 0, scale: 1 }}
+                                        exit={{ opacity: 0, rotateY: 20, scale: 0.95 }}
+                                        transition={{ duration: 0.4, ease: "easeInOut" }}
+                                        style={{ transformStyle: 'preserve-3d' }}
+                                        className={`w-[95%] max-w-5xl aspect-video rounded-3xl overflow-hidden ring-1 z-20 ${
+                                            isDark
+                                                ? 'shadow-2xl shadow-black/60 ring-white/20 bg-slate-900'
+                                                : 'shadow-2xl shadow-slate-300/40 ring-slate-300 bg-white'
+                                        }`}
+                                    >
+                                        {SlideComponent ? (
+                                            <ErrorBoundary
+                                                name={currentSlide?.type}
+                                                fallback={
+                                                    <div className="flex items-center justify-center h-full text-slate-400 text-sm">
+                                                        Slide render error. Check console for details.
+                                                    </div>
+                                                }
+                                            >
+                                                <SlideComponent {...currentSlide.props} />
+                                            </ErrorBoundary>
+                                        ) : (
+                                            <div className="flex items-center justify-center h-full text-slate-400 text-sm">
+                                                Unknown slide type.
+                                            </div>
+                                        )}
+                                    </motion.div>
+                                </div>
+
+                                {/* Right Navigation Arrow */}
+                                <div className="absolute right-4 top-1/2 -translate-y-1/2 z-30">
+                                    <button
+                                        onClick={() => setCurrentSlideIndex(Math.min(slides.length - 1, currentSlideIndex + 1))}
+                                        disabled={currentSlideIndex === slides.length - 1}
+                                        className={`relative p-3 rounded-full transition-all ${
+                                            isDark
+                                                ? 'bg-white/10 hover:bg-white/20 disabled:opacity-30 text-white'
+                                                : 'bg-white/80 hover:bg-white disabled:opacity-30 text-slate-900'
+                                        }`}
+                                    >
+                                        <ChevronRight size={24} />
+                                    </button>
+                                </div>
+
+                                {/* Slide Counter */}
+                                <div className={`absolute top-4 right-6 px-4 py-2 rounded-full backdrop-blur-md z-30 ${
+                                    isDark
+                                        ? 'bg-white/10 border border-white/20 text-white'
+                                        : 'bg-white/80 border border-white/60 text-slate-900'
+                                }`}>
+                                    <span className="text-sm font-semibold">{currentSlideIndex + 1} / {slides.length}</span>
                                 </div>
                             </div>
                         )}
@@ -331,10 +519,22 @@ export const DashboardPRD: React.FC = () => {
 
                     {/* Slide Reel */}
                     {slides.length > 0 && (
-                        <div className={`h-40 border-t relative z-20 shrink-0 flex items-center justify-center ${isDark ? 'bg-slate-900/50 border-white/10' : 'bg-slate-50 border-slate-200'}`}>
-                            <div className={`absolute inset-x-0 -top-12 h-12 bg-gradient-to-t ${isDark ? 'from-slate-900/50' : 'from-slate-50'} to-transparent pointer-events-none`} />
-                            <SlideReel currentIndex={currentSlideIndex} onSelect={setCurrentSlideIndex} />
-                        </div>
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.5 }}
+                            className={`h-48 border-t relative z-20 shrink-0 flex items-center justify-center overflow-hidden ${isDark ? 'bg-gradient-to-t from-slate-900 via-slate-900/80 to-slate-950 border-white/10' : 'bg-gradient-to-t from-slate-50 via-white to-slate-100 border-slate-200'}`}
+                        >
+                            <div className={`absolute inset-x-0 -top-12 h-12 bg-gradient-to-t ${isDark ? 'from-slate-900/80' : 'from-slate-50'} to-transparent pointer-events-none`} />
+                            <ErrorBoundary
+                                name="SlideReel"
+                                fallback={
+                                    <div className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>Slide reel failed to render.</div>
+                                }
+                            >
+                                <SlideReel currentIndex={currentSlideIndex} onSelect={setCurrentSlideIndex} />
+                            </ErrorBoundary>
+                        </motion.div>
                     )}
                 </div>
 
@@ -344,77 +544,98 @@ export const DashboardPRD: React.FC = () => {
                         <div className={`h-12 border-b flex items-center gap-2 px-4 ${isDark ? 'bg-slate-900/70 border-white/10' : 'bg-white border-slate-200'}`}>
                             <button
                                 onClick={() => setSidePanel('blocks')}
-                                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${
+                                className={`relative px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors overflow-hidden ${
                                     sidePanel === 'blocks'
-                                        ? 'bg-primary/10 text-primary border border-primary/30'
-                                        : isDark ? 'text-slate-300 hover:text-white' : 'text-slate-700 hover:text-slate-900'
+                                        ? isDark
+                                            ? 'bg-white/15 text-white border border-white/30 backdrop-blur-md shadow-[0_6px_18px_rgba(255,255,255,0.08)]'
+                                            : 'bg-white/80 text-slate-900 border border-white/60 backdrop-blur-md shadow-[0_6px_18px_rgba(15,23,42,0.08)]'
+                                        : isDark
+                                            ? 'text-slate-300 hover:text-white hover:bg-white/5'
+                                            : 'text-slate-700 hover:text-slate-900 hover:bg-white/50'
                                 }`}
                             >
-                                Blocks
+                                <GlowingEffect
+                                    spread={22}
+                                    glow={true}
+                                    disabled={false}
+                                    proximity={38}
+                                    inactiveZone={0.3}
+                                    borderWidth={1}
+                                />
+                                <span className="relative z-10">Blocks</span>
                             </button>
                             <button
                                 onClick={() => setSidePanel('chat')}
-                                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${
+                                className={`relative px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors overflow-hidden ${
                                     sidePanel === 'chat'
-                                        ? 'bg-primary/10 text-primary border border-primary/30'
-                                        : isDark ? 'text-slate-300 hover:text-white' : 'text-slate-700 hover:text-slate-900'
+                                        ? isDark
+                                            ? 'bg-white/15 text-white border border-white/30 backdrop-blur-md shadow-[0_6px_18px_rgba(255,255,255,0.08)]'
+                                            : 'bg-white/80 text-slate-900 border border-white/60 backdrop-blur-md shadow-[0_6px_18px_rgba(15,23,42,0.08)]'
+                                        : isDark
+                                            ? 'text-slate-300 hover:text-white hover:bg-white/5'
+                                            : 'text-slate-700 hover:text-slate-900 hover:bg-white/50'
                                 }`}
                             >
-                                <MessageSquare size={14} className="inline mr-2" />
-                                Chat
+                                <GlowingEffect
+                                    spread={22}
+                                    glow={true}
+                                    disabled={false}
+                                    proximity={38}
+                                    inactiveZone={0.3}
+                                    borderWidth={1}
+                                />
+                                <span className="relative z-10 flex items-center gap-2">
+                                    <MessageSquare size={14} />
+                                    Chat
+                                </span>
                             </button>
                             <button
                                 onClick={() => setSidePanel('intel')}
-                                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${
+                                className={`relative px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors overflow-hidden ${
                                     sidePanel === 'intel'
-                                        ? 'bg-primary/10 text-primary border border-primary/30'
-                                        : isDark ? 'text-slate-300 hover:text-white' : 'text-slate-700 hover:text-slate-900'
+                                        ? isDark
+                                            ? 'bg-white/15 text-white border border-white/30 backdrop-blur-md shadow-[0_6px_18px_rgba(255,255,255,0.08)]'
+                                            : 'bg-white/80 text-slate-900 border border-white/60 backdrop-blur-md shadow-[0_6px_18px_rgba(15,23,42,0.08)]'
+                                        : isDark
+                                            ? 'text-slate-300 hover:text-white hover:bg-white/5'
+                                            : 'text-slate-700 hover:text-slate-900 hover:bg-white/50'
                                 }`}
                             >
-                                Intelligence
+                                <GlowingEffect
+                                    spread={22}
+                                    glow={true}
+                                    disabled={false}
+                                    proximity={38}
+                                    inactiveZone={0.3}
+                                    borderWidth={1}
+                                />
+                                <span className="relative z-10">Intelligence</span>
                             </button>
                         </div>
 
                         <div className="flex-1 overflow-hidden">
                             {sidePanel === 'blocks' ? (
-                                <div className={`h-full overflow-y-auto p-4 ${isDark ? 'bg-slate-900/40' : 'bg-white'}`}>
-                                    <h3 className={`text-sm font-bold mb-4 ${isDark ? 'text-white' : 'text-slate-900'}`}>Pitch Blocks</h3>
+                                <div className={`h-full overflow-y-auto p-4 ${isDark ? 'bg-gradient-to-b from-slate-900/60 to-slate-950/60' : 'bg-gradient-to-b from-white to-slate-50'}`}>
+                                    <h3 className={`text-sm font-bold mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                                        <Sparkles size={16} className="text-primary" />
+                                        Pitch Blocks
+                                    </h3>
                                     {blocks.length === 0 ? (
-                                        <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>Generate a pitch to see blocks here.</p>
+                                        <motion.div
+                                            initial={{ opacity: 0 }}
+                                            animate={{ opacity: 1 }}
+                                            className={`text-xs p-6 rounded-lg text-center ${isDark ? 'bg-white/5 border border-white/10 text-slate-400' : 'bg-slate-100 border border-slate-300 text-slate-600'}`}
+                                        >
+                                            <p>Generate a pitch to see blocks here.</p>
+                                        </motion.div>
                                     ) : (
                                         <div className="space-y-3">
                                             {blocks.map((block, idx) => (
-                                                <div key={block.id} className={`rounded-lg border p-3 ${isDark ? 'bg-white/5 border-white/10' : 'bg-slate-50 border-slate-300'}`}>
-                                                    <div className="flex items-center justify-between mb-2">
-                                                        <span className={`text-xs font-semibold ${isDark ? 'text-slate-300' : 'text-slate-900'}`}>
-                                                            {block.title}
-                                                        </span>
-                                                        <span className={`text-[10px] ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>#{idx + 1}</span>
-                                                    </div>
-                                                    <p className={`text-xs line-clamp-3 ${isDark ? 'text-slate-400' : 'text-slate-700'}`}>{block.content}</p>
-                                                    {block.versions.length > 0 && (
-                                                        <div className="mt-3">
-                                                            <button
-                                                                onClick={() => setExpandedBlockId(expandedBlockId === block.id ? null : block.id)}
-                                                                className="text-[10px] text-primary hover:text-primary/80 transition-colors"
-                                                            >
-                                                                Versions ({block.versions.length})
-                                                            </button>
-                                                            {expandedBlockId === block.id && (
-                                                                <div className="mt-2 space-y-2">
-                                                                    {block.versions.slice(-2).reverse().map((version) => (
-                                                                        <div key={version.timestamp} className={`text-[10px] border-l pl-2 ${isDark ? 'text-slate-400 border-white/10' : 'text-slate-700 border-slate-300'}`}>
-                                                                            <div className={`text-[9px] ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>
-                                                                                {new Date(version.timestamp).toLocaleString()}
-                                                                            </div>
-                                                                            <div className="line-clamp-2">{version.content}</div>
-                                                                        </div>
-                                                                    ))}
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                    )}
-                                                </div>
+                                                <PitchBlockCard
+                                                    key={block.id}
+                                                    block={block}
+                                                    index={idx}
+                                                />
                                             ))}
                                         </div>
                                     )}

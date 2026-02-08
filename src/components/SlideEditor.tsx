@@ -4,6 +4,7 @@ import type { Slide } from '../context/DeckContext';
 import { useDeck } from '../context/DeckContext';
 import { useExportDeck } from '../hooks/useExportDeck';
 import { useTheme } from '../context/ThemeContext';
+import { GlowingEffect } from './ui/glowing-effect';
 
 interface SlideEditorProps {
     currentSlide: Slide | undefined;
@@ -113,26 +114,56 @@ export const SlideEditor: React.FC<SlideEditorProps> = ({
             <div className={`border-t p-4 flex-shrink-0 space-y-2 ${isDark ? 'border-white/10' : 'border-slate-200'}`}>
                 <button
                     onClick={exportToPPT}
-                    className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-primary text-white font-medium rounded-lg hover:shadow-lg hover:shadow-primary/30 transition-all text-sm"
+                    className="relative w-full flex items-center justify-center gap-2 px-4 py-3 bg-primary text-white font-medium rounded-lg hover:shadow-lg hover:shadow-primary/30 transition-all text-sm overflow-hidden"
                 >
-                    <Download size={16} />
-                    Download Deck
+                    <GlowingEffect
+                        spread={32}
+                        glow={true}
+                        disabled={false}
+                        proximity={55}
+                        inactiveZone={0.2}
+                        borderWidth={1.5}
+                    />
+                    <span className="relative z-10 flex items-center gap-2">
+                        <Download size={16} />
+                        Download Deck
+                    </span>
                 </button>
 
                 <div className="grid grid-cols-2 gap-2">
                     <button
                         onClick={handleDuplicate}
-                        className={`flex items-center justify-center gap-2 px-3 py-2 rounded-lg transition-colors text-sm ${isDark ? 'bg-white/10 hover:bg-white/20 text-white' : 'bg-slate-200 hover:bg-slate-300 text-slate-900'}`}
+                        className={`relative flex items-center justify-center gap-2 px-3 py-2 rounded-lg transition-colors text-sm overflow-hidden ${isDark ? 'bg-white/10 hover:bg-white/20 text-white' : 'bg-slate-200 hover:bg-slate-300 text-slate-900'}`}
                     >
-                        <Copy size={14} />
-                        Duplicate
+                        <GlowingEffect
+                            spread={24}
+                            glow={true}
+                            disabled={false}
+                            proximity={40}
+                            inactiveZone={0.3}
+                            borderWidth={1.5}
+                        />
+                        <span className="relative z-10 flex items-center gap-2">
+                            <Copy size={14} />
+                            Duplicate
+                        </span>
                     </button>
                     <button
                         onClick={handleDelete}
-                        className={`flex items-center justify-center gap-2 px-3 py-2 rounded-lg transition-colors text-sm ${isDark ? 'bg-red-500/20 hover:bg-red-500/30 text-red-300' : 'bg-red-100 hover:bg-red-200 text-red-700'}`}
+                        className={`relative flex items-center justify-center gap-2 px-3 py-2 rounded-lg transition-colors text-sm overflow-hidden ${isDark ? 'bg-red-500/20 hover:bg-red-500/30 text-red-300' : 'bg-red-100 hover:bg-red-200 text-red-700'}`}
                     >
-                        <Trash2 size={14} />
-                        Delete
+                        <GlowingEffect
+                            spread={24}
+                            glow={true}
+                            disabled={false}
+                            proximity={40}
+                            inactiveZone={0.3}
+                            borderWidth={1.5}
+                        />
+                        <span className="relative z-10 flex items-center gap-2">
+                            <Trash2 size={14} />
+                            Delete
+                        </span>
                     </button>
                 </div>
             </div>

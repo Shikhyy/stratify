@@ -7,7 +7,9 @@ export type SlideType =
     | 'WaterfallBridge'
     | 'HarveyBallMatrix'
     | 'ChevronProcess'
-    | 'UnitEconomics';
+    | 'UnitEconomics'
+    | 'FinancialProjections'
+    | 'MarketWaterfall';
 
 export type Section = 'Context' | 'Analysis' | 'Strategy' | 'Impact';
 

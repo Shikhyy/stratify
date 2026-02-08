@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { useDeck } from '../context/DeckContext';
 import { useTheme } from '../context/ThemeContext';
 import { STRATIFY_TOOLS } from '../tambo.config';
+import { GlowingEffect } from './ui/glowing-effect';
 
 interface DeckPreviewModalProps {
     isOpen: boolean;
@@ -70,10 +71,18 @@ export const DeckPreviewModal: React.FC<DeckPreviewModalProps> = ({
                             </div>
                             <button
                                 onClick={onClose}
-                                className={`p-2 rounded-lg transition-colors ${isDark ? 'text-white/70 hover:text-white hover:bg-white/10' : 'text-slate-700 hover:text-slate-900 hover:bg-slate-100'}`}
+                                className={`relative p-2 rounded-lg transition-colors overflow-hidden ${isDark ? 'text-white/70 hover:text-white hover:bg-white/10' : 'text-slate-700 hover:text-slate-900 hover:bg-slate-100'}`}
                                 aria-label="Close preview"
                             >
-                                <X size={18} />
+                                <GlowingEffect
+                                    spread={22}
+                                    glow={true}
+                                    disabled={false}
+                                    proximity={36}
+                                    inactiveZone={0.3}
+                                    borderWidth={1}
+                                />
+                                <X size={18} className="relative z-10" />
                             </button>
                         </div>
 
@@ -84,7 +93,15 @@ export const DeckPreviewModal: React.FC<DeckPreviewModalProps> = ({
                                 </div>
                             ) : (
                                 <div className="relative">
-                                    <div className={`w-full aspect-video rounded-xl overflow-hidden border ${isDark ? 'border-white/10 bg-slate-900' : 'border-slate-300 bg-white'}`}>
+                                    <div className={`relative w-full aspect-video rounded-xl overflow-hidden border ${isDark ? 'border-white/10 bg-slate-900' : 'border-slate-300 bg-white'} group`}>
+                                        <GlowingEffect
+                                            spread={60}
+                                            glow={true}
+                                            disabled={false}
+                                            proximity={100}
+                                            inactiveZone={0.15}
+                                            borderWidth={3}
+                                        />
                                         {SlideComponent ? (
                                             <SlideComponent {...currentSlide.props} />
                                         ) : (
@@ -96,19 +113,35 @@ export const DeckPreviewModal: React.FC<DeckPreviewModalProps> = ({
 
                                     <button
                                         onClick={handlePrev}
-                                        className={`absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 p-3 rounded-full border transition-colors ${isDark ? 'bg-slate-900/90 border-white/10 text-white/70 hover:text-white hover:bg-slate-800' : 'bg-white border-slate-300 text-slate-700 hover:text-slate-900 hover:bg-slate-100'}`}
+                                        className={`absolute left-4 top-1/2 -translate-y-1/2 z-20 p-3 rounded-full border transition-all duration-200 ${isDark ? 'bg-slate-900/80 border-white/20 text-white/60 hover:text-white hover:bg-slate-800/90' : 'bg-white/90 border-slate-300 text-slate-600 hover:text-slate-900 hover:bg-white'} disabled:opacity-50 disabled:cursor-not-allowed`}
                                         aria-label="Previous slide"
                                         disabled={slides.length === 0}
                                     >
-                                        <ChevronLeft size={18} />
+                                        <GlowingEffect
+                                            spread={30}
+                                            glow={true}
+                                            disabled={slides.length === 0}
+                                            proximity={40}
+                                            inactiveZone={0.2}
+                                            borderWidth={1.5}
+                                        />
+                                        <ChevronLeft size={20} className="relative z-10" />
                                     </button>
                                     <button
                                         onClick={handleNext}
-                                        className={`absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 p-3 rounded-full border transition-colors ${isDark ? 'bg-slate-900/90 border-white/10 text-white/70 hover:text-white hover:bg-slate-800' : 'bg-white border-slate-300 text-slate-700 hover:text-slate-900 hover:bg-slate-100'}`}
+                                        className={`absolute right-4 top-1/2 -translate-y-1/2 z-20 p-3 rounded-full border transition-all duration-200 ${isDark ? 'bg-slate-900/80 border-white/20 text-white/60 hover:text-white hover:bg-slate-800/90' : 'bg-white/90 border-slate-300 text-slate-600 hover:text-slate-900 hover:bg-white'} disabled:opacity-50 disabled:cursor-not-allowed`}
                                         aria-label="Next slide"
                                         disabled={slides.length === 0}
                                     >
-                                        <ChevronRight size={18} />
+                                        <GlowingEffect
+                                            spread={30}
+                                            glow={true}
+                                            disabled={slides.length === 0}
+                                            proximity={40}
+                                            inactiveZone={0.2}
+                                            borderWidth={1.5}
+                                        />
+                                        <ChevronRight size={20} className="relative z-10" />
                                     </button>
                                 </div>
                             )}
